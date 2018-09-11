@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{92D92986-F004-4180-8017-C40CF662058F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SimpleFeed.NetFX</RootNamespace>
+    <AssemblyName>SimpleFeed.NetFX</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>1701;1702;1705;1591;</NoWarn>
+    <DocumentationFile>bin\Debug\SimpleFeed.NetFX.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>1701;1702;1705;1591;</NoWarn>
+    <DocumentationFile>bin\Release\SimpleFeed.NetFX.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DotNetXtensions.Common.NetFX">
+      <HintPath>..\..\DotNetXtensions\NETFX\DotNetXtensions.Common.NetFX\bin\Debug\DotNetXtensions.Common.NetFX.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetXtensions.NetFX">
+      <HintPath>..\..\DotNetXtensions\NETFX\DotNetXtensions.NetFX\bin\Debug\DotNetXtensions.NetFX.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SimpleFeed\src\BasicMimeTypesSFX.cs">
+      <Link>src\BasicMimeTypesSFX.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\ExtraTextFuncs.cs">
+      <Link>src\ExtraTextFuncs.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFAlterFeedLinks.cs">
+      <Link>src\SFAlterFeedLinks.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFAuthorFull.cs">
+      <Link>src\SFAuthorFull.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFCategory.cs">
+      <Link>src\SFCategory.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFFeedEntry.cs">
+      <Link>src\SFFeedEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFFeedMeta.cs">
+      <Link>src\SFFeedMeta.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFFeedSettings.cs">
+      <Link>src\SFFeedSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFFeedType.cs">
+      <Link>src\SFFeedType.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFHub.cs">
+      <Link>src\SFHub.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFLink.cs">
+      <Link>src\SFLink.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFRel.cs">
+      <Link>src\SFRel.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SFText.cs">
+      <Link>src\SFText.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SimpleFeed.cs">
+      <Link>src\SimpleFeed.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\XSimpleFeed.cs">
+      <Link>src\XSimpleFeed.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

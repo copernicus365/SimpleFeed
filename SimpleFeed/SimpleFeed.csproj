@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netstandard2.0\SimpleFeed.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591;</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;1705;1591;</NoWarn>
+    <DocumentationFile>bin\Release\netstandard2.0\SimpleFeed.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="DotNetXtensions">
+      <HintPath>..\..\DotNetXtensions\DotNetXtensions\bin\Debug\netstandard2.0\DotNetXtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetXtensions.Common">
+      <HintPath>..\..\DotNetXtensions\DotNetXtensions.Common\bin\Debug\netstandard2.0\DotNetXtensions.Common.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

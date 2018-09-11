@@ -1,0 +1,23 @@
+﻿
+Prior to moving to netstandard:
+
+Old System refs:
+System,
+System.Configuration,
+System.Core,
+System.Xml.Linq,
+Microsoft.CSharp,
+System.Xml
+
+On DNX refs:
+
+..\Collections\Comparers\ComparerX.cs
+..\Text\TextFuncs.cs
+..\XChar.cs
+..\XDictionary.cs
+..\XLinq.cs
+..\XMLLinq.cs
+..\XNumeric.cs
+..\XString.cs
+..\XStringBuilder.cs
+..\XStringToValue.cs
