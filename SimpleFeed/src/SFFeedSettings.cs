@@ -61,5 +61,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public Func<SFFeedEntry, string, string> GenerateIdForEntriesWithNoId { get; set; }
 
+		public TimeZoneInfo AlterUTCDatesToThisTimezone { get; set; }
+
 	}
 }

@@ -271,36 +271,47 @@ namespace SimpleFeedNS
 
 				switch (doc.Name.ToString()) {
 					case "rss": {
-							IsRss = true;
-							XElement channel = doc.Element("channel");
-							if (channel != null) {
-								SourceFeedType = SFFeedType.RSS;
-								RssItemToFeedEntry(channel, DateTime.UtcNow, this, true);
+						IsRss = true;
+						XElement channel = doc.Element("channel");
+						if (channel != null) {
+							SourceFeedType = SFFeedType.RSS;
+							RssItemToFeedEntry(channel, this, true);
 
-								int i = 1;
-								Items = channel
-									.Elements("item")
-									.TakeIf(limit > 0, limit)
-									.Select(xItem => RssItemToFeedEntry(xItem, Published - TimeSpan.FromSeconds(i++)))
-									.ToList();
-							}
-						}
-						break;
-					case "feed": {
-							IsAtom = true; //HasAtom = true; // do NOT set this to true, the true namespace MUST be available
-							SourceFeedType = SFFeedType.ATOM;
-							AtomEntryToFeedEntry(doc, this, true);
-							Items = doc
-								.Elements("entry")
+							int i = 1;
+							Items = channel
+								.Elements("item")
 								.TakeIf(limit > 0, limit)
-								.Select(e => AtomEntryToFeedEntry(e)).ToList();
+								.Select(xItem => RssItemToFeedEntry(
+									xItem
+								// HUH?! REMOVED! defaultDateTime: Published - TimeSpan.FromSeconds(i++) 
+								// for the record, as absurd as it is why the default date would have been
+								// whatever the default time (like UtcNow) plus a 1 second increment for each 
+								// item, dumb, but at least the idea was you would get an auto-increment
+								// and thus an ascending order of dates giving the items a natural sort
+								// by datetime as their items actually occurred. Keep in mind ATOM has no such
+								// problems because it's an invalid feed without at least I think an `updated` 
+								// value. Anyways, this is way to messy, just needs to report 0 time when
+								// no time exists, period
+								))
+								.ToList();
 						}
-						break;
+					}
+					break;
+					case "feed": {
+						IsAtom = true; //HasAtom = true; // do NOT set this to true, the true namespace MUST be available
+						SourceFeedType = SFFeedType.ATOM;
+						AtomEntryToFeedEntry(doc, this, true);
+						Items = doc
+							.Elements("entry")
+							.TakeIf(limit > 0, limit)
+							.Select(e => AtomEntryToFeedEntry(e)).ToList();
+					}
+					break;
 					default: {
-							Error = true;
-							messages.AppendFormat("Document root element name ({0}) is not a valid feed type ('rss' or 'atom').", doc.Name);
-							return null;
-						}
+						Error = true;
+						messages.AppendFormat("Document root element name ({0}) is not a valid feed type ('rss' or 'atom').", doc.Name);
+						return null;
+					}
 				}
 
 				if (Items.NotNulle()) {
@@ -333,7 +344,11 @@ namespace SimpleFeedNS
 		// ====== CHIEF ENTRY PARSERS ======
 
 
-		public SFFeedEntry RssItemToFeedEntry(XElement x, DateTime? defaultDateTime = null, SFFeedEntry e = null, bool isRssChannel = false)
+		public SFFeedEntry RssItemToFeedEntry(
+			XElement x,
+			// REMOVED! -- DateTime? defaultDateTime = null, 
+			SFFeedEntry e = null,
+			bool isRssChannel = false)
 		{
 			if (e == null) // for when parent feed IS the entry
 				e = new SFFeedEntry(Settings);
@@ -342,7 +357,7 @@ namespace SimpleFeedNS
 			e.SetLinksFromXmlRssItem(x);
 
 			// DATETIME
-			SetRssDates(x, e, defaultDateTime, isRssChannel);
+			SetRssDates(x, e, isRssChannel);
 
 			// ID
 			e.Id = GetRssId(x); // e.GetFirstWebLink()?.Url); //e.GetFirstWebLink()?.Url.QQQ(e.GetFirstEnclosure()?.Url));
@@ -387,12 +402,7 @@ namespace SimpleFeedNS
 
 			e.Id = (string)x.Element("id");
 
-			// UPDATED, PUBLISHED
-			e.Updated = XSimpleFeed.ParseDateTimeLenientDefault(
-				(string)x.Element("updated"),
-				isAtomDocument ? (DateTime?)DateTime.UtcNow : null);
-
-			e.Published = XSimpleFeed.ParseDateTimeLenientDefault((string)x.Element("published"), e.Updated);
+			__SET_ENTRY_DATES(e, (string)x.Element("published"), (string)x.Element("updated"));
 
 			SetItunes(x, e);
 
@@ -423,6 +433,50 @@ namespace SimpleFeedNS
 			return e;
 		}
 
+
+		void __SET_ENTRY_DATES(SFFeedEntry e, string publishedDateStr, string updatedDateStr)
+		{
+			if (publishedDateStr.IsNulle() && updatedDateStr.IsNulle()) {
+				e.Updated = e.Published = DateTimeOffset.MinValue;
+				return;
+			}
+
+			TimeZoneInfo tzi = settings.AlterUTCDatesToThisTimezone;
+
+			if (publishedDateStr == null)
+				publishedDateStr = updatedDateStr;
+			else if (updatedDateStr == null)
+				updatedDateStr = publishedDateStr;
+
+			if (publishedDateStr == null) // then both are null by now, return
+				return;
+
+			bool areTheSame = publishedDateStr == updatedDateStr;
+
+			(bool success, bool hadOffset, DateTimeOffset result) = XDateTimes.ParseDateTimeWithOffsetInfo(
+				dateStr: updatedDateStr,
+				localTimeZone: tzi,
+				treatNoOffsetAsLocalTime: true, // !!
+				handleObsoleteUSTimeZones: true // !!
+			);
+
+			e.Updated = result;
+
+			if (areTheSame) {
+				e.Published = e.Updated;
+			}
+			else {
+				(success, hadOffset, result) = XDateTimes.ParseDateTimeWithOffsetInfo(
+					dateStr: publishedDateStr,
+					localTimeZone: tzi,
+					treatNoOffsetAsLocalTime: true, // !!
+					handleObsoleteUSTimeZones: true // !!
+				);
+
+				e.Published = result;
+			}
+		}
+
 		ExtraTextFuncs ex = new ExtraTextFuncs();
 
 		public void ConvertUrlsToLinks(SFFeedEntry e)
@@ -442,7 +496,7 @@ namespace SimpleFeedNS
 				string fields = e.Keywords; // NOTE! this property concats all categories ...
 
 				if (convertAllUrls) {
-					fields = 
+					fields =
 						(new string[] { fields, e.Title, e.SubTitle, e.Series, e.Summary, e.Content })
 						.Where(v => v.NotNulle())
 						.JoinToString(" ;!; ");
@@ -532,34 +586,31 @@ namespace SimpleFeedNS
 			return authorFull;
 		}
 
-		void SetRssDates(XElement item, SFFeedEntry e, DateTime? defaultDateTime = null, bool isRssChannel = false)
+		void SetRssDates(
+			XElement item,
+			SFFeedEntry e,
+			// REMOVED! -- DateTime? defaultDateTime = null, 
+			bool isRssChannel = false)
 		{
 			// DATE (PUBLISHED / UPDATED)
-			string published = null;
-			string updated = (string)item.Element(xname_Atom_Updated);
+			string publishedDateStr = null;
+			string updatedDateStr = (string)item.Element(xname_Atom_Updated);
 
 			if (isRssChannel) {
-				if (updated.IsNulle())
-					updated = (string)item.Element("lastBuildDate");
+				if (updatedDateStr.IsNulle())
+					updatedDateStr = (string)item.Element("lastBuildDate");
 			}
 
 			if (HasAtom)
-				published = (string)item.Element(xname_Atom_Published);
+				publishedDateStr = (string)item.Element(xname_Atom_Published);
 
-			if (HasDublinCore && published == null)
-				published = (string)item.Element(xname_DC_Date);
+			if (HasDublinCore && publishedDateStr == null)
+				publishedDateStr = (string)item.Element(xname_DC_Date);
 
-			if (published == null)
-				published = (string)item.Element("pubDate");
+			if (publishedDateStr == null)
+				publishedDateStr = (string)item.Element("pubDate");
 
-			// Get default from input default else from mother document
-			DateTime defaultDT = defaultDateTime != null ? (DateTime)defaultDateTime : this.Published;
-			e.Published = XSimpleFeed.ParseDateTimeLenientDefault(published, defaultDT);
-
-			e.Updated = e.Published;
-			if (updated != null && updated != published) {
-				e.Updated = XSimpleFeed.ParseDateTimeLenientDefault(updated, e.Published);
-			}
+			__SET_ENTRY_DATES(e, publishedDateStr, updatedDateStr);
 		}
 
 		string GetRssId(XElement rss)

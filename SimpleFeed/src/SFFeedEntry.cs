@@ -33,28 +33,27 @@ namespace SimpleFeedNS
 		/// The Updated time of the feed entry. When parsing a feed, when there is no updated 
 		/// value available (as RSS does not have one), it is *in general*
 		/// taken from the Published (rss: pubDate or alternatives) datetime if available (and vise-versa). 
-		/// But please see documentation on Published for more details on how SimpleFeed handles datetimes. 
+		/// But please see documentation on Published for many more details on how SimpleFeed handles datetimes! 
 		/// </summary>
-		public DateTime Updated { get; set; }
+		public DateTimeOffset Updated { get; set; }
 
 		/// <summary>
 		/// The Published date of the feed entry (atom: published, rss: pubDate or dc:date and so forth).
 		/// For ATOM, when only the mandatory 'updated' element is present, this value will be taken from it.
-		/// Also, when no date is available (for RSS, ATOM will always have an 'updated') a value from 
-		/// the parent channel is used if available.
-		/// When parsing an RSS feed, there are some complex routes that determine this value, determined 
-		/// in SetRssDates. Among the many options, we give precedence to 
-		/// atom:published and dc:date which take precedence over pubDate when available.
-		/// All of this is simply too complex too describe in this documentation however, and it would
-		/// also be challenging to keep the documentation up to date with the code.
-		/// Please study SetRssDates for RSS in particular to understand in more detail how SimpleFeed
-		/// determines this (as well as the Updated) value. One thing is for sure though, SimpleFeed 
-		/// will NEVER throw an exception based on bad date-time formats. In the worse case scenario, 
-		/// the datetime will simply be set to DateTime.MinValue. But before that, we go out of our way 
-		/// to determine bad datetime formats, though quite performantly still.
-		/// See SimpleFeed.HelperFuncs.TryParseDateTimeLenient.
+		/// Also, when no date is available (for RSS, ATOM will always have an 'updated') 
+		/// (OLD! strike out: a value from the parent channel is used if available)
+		/// (NEW!): then this value will simply be set to Min (DateTimeOffset.MinValue).
+		/// <para />
+		/// When parsing an RSS feed, there are a number of possible dates that could be obtained,
+		/// and we have to decide which gets precedence, on which see `SetRssDates`. 
+		/// Things may change but currently we give precedence to `atom:published` then `dc:date`,
+		/// and finally `pubDate` when available (NB! to be sure you must depend on the code and
+		/// we don't make promises this complex set of options won't cause precedence changes).
+		/// One thing is for sure though, SimpleFeed 
+		/// will NEVER throw an exception based on bad date-time formats!!! In the worse case scenario, 
+		/// when bad or just not available it will simply be set to DateTime.MinValue. 
 		/// </summary>
-		public DateTime Published { get; set; }
+		public DateTimeOffset Published { get; set; }
 
 		/// <summary>
 		/// Simply returns or sets AuthorFull.Name.
