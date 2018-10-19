@@ -12,18 +12,23 @@ namespace SimpleFeedNS
 
 		#region FeedEntry Related
 
+		public static bool Default_CompleteItemMustHaveAuthor = false;
+		public static bool Default_CompleteItemMustHaveUpdateOrPublishedDateSet = false;
+
+
+
 		public static IEnumerable<SFFeedEntry> GetIncompleteEntries(
 			this IEnumerable<SFFeedEntry> entries,
-			bool updatedOrPublishedMustBeSet = true,
-			bool mustHaveAuthor = false)
+			bool? updatedOrPublishedMustBeSet = null,
+			bool? mustHaveAuthor = null)
 		{
 			return entries.Where(e => !e.IsComplete(updatedOrPublishedMustBeSet, mustHaveAuthor));
 		}
 
 		public static bool IsComplete(
 			this SFFeedEntry entry,
-			bool updatedOrPublishedMustBeSet = true,
-			bool mustHaveAuthor = false)
+			bool? updatedOrPublishedMustBeSet = null,
+			bool? mustHaveAuthor = null)
 		{
 			if (entry == null)
 				return false;
@@ -32,12 +37,12 @@ namespace SimpleFeedNS
 				entry.Title.IsNulle())
 				return false;
 
-			if (updatedOrPublishedMustBeSet) {
+			if (updatedOrPublishedMustBeSet ?? Default_CompleteItemMustHaveUpdateOrPublishedDateSet) {
 				if(entry.Published == DateTimeOffset.MinValue && entry.Updated == DateTimeOffset.MinValue)
 					return false;
 			}
 
-			if (mustHaveAuthor && entry.Author.IsNulle())
+			if ((mustHaveAuthor ?? Default_CompleteItemMustHaveAuthor) && entry.Author.IsNulle())
 				return false;
 
 			return true;
