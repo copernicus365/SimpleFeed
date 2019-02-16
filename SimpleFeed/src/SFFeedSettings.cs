@@ -41,6 +41,12 @@ namespace SimpleFeedNS
 		/// </summary>
 		public bool ConvertContentUrlsToLinks { get; set; }
 
+		/// <summary>
+		/// True in order to extract image urls from a content `img`
+		/// tag (often which uses `srcset`).
+		/// </summary>
+		public bool GetImageUrlsFromContentImgTag { get; set; }
+
 		// Removed because not deleting would add duplicate information, should do only one way or the other...
 		//public bool DeleteCategoryIfConvertedToLink { get; set; }
 

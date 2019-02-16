@@ -89,6 +89,9 @@
     <Compile Include="..\SimpleFeed\src\SimpleFeed.cs">
       <Link>src\SimpleFeed.cs</Link>
     </Compile>
+    <Compile Include="..\SimpleFeed\src\SrcSetImg.cs">
+      <Link>src\SrcSetImg.cs</Link>
+    </Compile>
     <Compile Include="..\SimpleFeed\src\XSimpleFeed.cs">
       <Link>src\XSimpleFeed.cs</Link>
     </Compile>

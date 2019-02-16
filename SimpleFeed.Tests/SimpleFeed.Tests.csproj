@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleFeed\SimpleFeed.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DotNetXtensions">
+      <HintPath>..\..\DotNetXtensions\DotNetXtensions\bin\Debug\netstandard2.0\DotNetXtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetXtensions.Net">
+      <HintPath>..\..\DotNetXtensions\DotNetXtensions.Net\bin\Debug\netstandard2.0\DotNetXtensions.Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

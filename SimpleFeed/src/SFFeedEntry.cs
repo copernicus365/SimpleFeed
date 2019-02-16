@@ -450,6 +450,8 @@ namespace SimpleFeedNS
 			set { _Links = value; }
 		}
 
+		public List<SrcSetImg> SrcSetImages { get; set; }
+
 		public void AddLink(SFLink link)
 		{
 			if (link.UrlN().NotNulle()) {
@@ -488,7 +490,6 @@ namespace SimpleFeedNS
 				return p.DiscoveredLink ? s : p;
 			return p;
 		}
-
 
 		public bool WinnowLinks(params string[] urlsToWinnow)
 		{

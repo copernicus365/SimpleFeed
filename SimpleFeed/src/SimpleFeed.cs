@@ -381,16 +381,33 @@ namespace SimpleFeedNS
 				e.AuthorFull = auth;
 			}
 
+			bool contentWasRssDescriptionTag = false;
+
 			// CONTENT / description
 			if (e.Content.IsNulle()) { // itunes overrides
-				string content = (string)x.Element("description");
-				e.Content = ClearXmlTagsIf(settings.ClearXmlContent_ContentTag, content, true, settings.HtmlDecodeTextValues);
+				string content = x.Element("description").ValueN().NullIfEmptyTrimmed();
+
+				if (content != null) {
+					contentWasRssDescriptionTag = true;
+					e.Content = content;
+				}
+			}
+
+			SetImageUrlsFromContentImgTag(e); // need to run this BEFORE we escape content
+
+			if (contentWasRssDescriptionTag) {
+				// I'm not totally sure why we were only doing this clearing of xml tags if 
+				// it was an RSS `description` field, I assume bec ATOM Content is not that
+				// (hmmm, but can't it be if type=html was set???) For now though continue with
+				// what we had till further research
+				e.Content = ClearXmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content, true, settings.HtmlDecodeTextValues);
 			}
 
 			if (settings.KeepXmlDocument)
 				e.XmlEntry = x;
 
 			ConvertUrlsToLinks(e);
+
 			return e;
 		}
 
@@ -413,15 +430,16 @@ namespace SimpleFeedNS
 			if (e.Author.IsNulle())
 				e.AuthorFull = GetAuthorFromXmlAtomEntry(x);
 
-			if (e.Content.IsNulle())
+			if (e.Content.IsNulle()) {
+				SetImageUrlsFromContentImgTag(e); // gotta set before messing with 
 				e.ContentFull = AtomTextTypeToText(x, "content", clearXmlValues: settings.ClearXmlContent_ContentTag);
+			}
 
 			if (e.Summary.IsNulle())
 				e.SummaryFull = AtomTextTypeToText(x, "summary", settings.ClearXmlContent_SummaryTag);
 
 			if (e.Title.IsNulle()) // if itunes didnt set
 				e.TitleFull = AtomTextTypeToText(x, "title", settings.ClearXmlContent_TitleTag);
-
 
 			// LINKS
 			e.SetLinksFromXmlAtomEntry(x);
@@ -430,6 +448,7 @@ namespace SimpleFeedNS
 				e.XmlEntry = x;
 
 			ConvertUrlsToLinks(e);
+
 			return e;
 		}
 
@@ -488,7 +507,7 @@ namespace SimpleFeedNS
 			if (!convertCats && !convertAllUrls)
 				return;
 
-			if (convertAllUrls)
+			if (convertAllUrls) // IF ConvertContentUrlsToLinks, then always do ConvertCategoryUrlsToLinks as well
 				convertCats = true;
 
 			if (convertCats) {
@@ -512,6 +531,19 @@ namespace SimpleFeedNS
 					}
 				}
 			}
+		}
+
+		public void SetImageUrlsFromContentImgTag(SFFeedEntry e)
+		{
+			if (e == null || !settings.GetImageUrlsFromContentImgTag || e.Content.IsNulle())
+				return;
+
+			List<SrcSetImg> imgs = ex.GetImageTagFromRssDescriptionHtml(
+				e.Content,
+				maxStartIndexOfImgTag: 2048);
+
+			if (imgs.NotNulle())
+				e.SrcSetImages = imgs;
 		}
 
 		#endregion

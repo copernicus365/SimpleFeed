@@ -59,5 +59,19 @@ namespace SimpleFeedNS
 				}
 			}
 		}
+
+
+		public List<SrcSetImg> GetImageTagFromRssDescriptionHtml(string desc, int maxStartIndexOfImgTag)
+		{
+			if (desc.IsNulle())
+				return null;
+
+			if (maxStartIndexOfImgTag > desc.Length)
+				maxStartIndexOfImgTag = desc.Length;
+
+			int imgIdx = desc.IndexOf("<img ", 0, maxStartIndexOfImgTag);
+
+			return null;
+		}
 	}
 }
