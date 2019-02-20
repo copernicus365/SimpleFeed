@@ -34,7 +34,8 @@
     <DocumentationFile>bin\Release\SimpleFeed.NetFX.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetXtensions.Common.NetFX">
+    <Reference Include="DotNetXtensions.Common.NetFX, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\DotNetXtensions\NETFX\DotNetXtensions.Common.NetFX\bin\Debug\DotNetXtensions.Common.NetFX.dll</HintPath>
     </Reference>
     <Reference Include="DotNetXtensions.NetFX">
@@ -88,6 +89,12 @@
     </Compile>
     <Compile Include="..\SimpleFeed\src\SimpleFeed.cs">
       <Link>src\SimpleFeed.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SrcSet.cs">
+      <Link>src\SrcSet.cs</Link>
+    </Compile>
+    <Compile Include="..\SimpleFeed\src\SrcSetImg.cs">
+      <Link>src\SrcSetImg.cs</Link>
     </Compile>
     <Compile Include="..\SimpleFeed\src\XSimpleFeed.cs">
       <Link>src\XSimpleFeed.cs</Link>

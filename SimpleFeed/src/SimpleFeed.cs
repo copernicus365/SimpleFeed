@@ -381,16 +381,33 @@ namespace SimpleFeedNS
 				e.AuthorFull = auth;
 			}
 
+			bool contentWasRssDescriptionTag = false;
+
 			// CONTENT / description
 			if (e.Content.IsNulle()) { // itunes overrides
-				string content = (string)x.Element("description");
-				e.Content = ClearXmlTagsIf(settings.ClearXmlContent_ContentTag, content, true, settings.HtmlDecodeTextValues);
+				string content = x.Element("description").ValueN().NullIfEmptyTrimmed();
+
+				if (content != null) {
+					contentWasRssDescriptionTag = true;
+					e.Content = content;
+				}
+			}
+
+			SetImageUrlsFromContentImgTag(e); // need to run this BEFORE we escape content
+
+			if (contentWasRssDescriptionTag) {
+				// I'm not totally sure why we were only doing this clearing of xml tags if 
+				// it was an RSS `description` field, I assume bec ATOM Content is not that
+				// (hmmm, but can't it be if type=html was set???) For now though continue with
+				// what we had till further research
+				e.Content = ClearXmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content, true, settings.HtmlDecodeTextValues);
 			}
 
 			if (settings.KeepXmlDocument)
 				e.XmlEntry = x;
 
 			ConvertUrlsToLinks(e);
+
 			return e;
 		}
 
@@ -413,15 +430,16 @@ namespace SimpleFeedNS
 			if (e.Author.IsNulle())
 				e.AuthorFull = GetAuthorFromXmlAtomEntry(x);
 
-			if (e.Content.IsNulle())
+			if (e.Content.IsNulle()) {
+				SetImageUrlsFromContentImgTag(e); // gotta set before messing with 
 				e.ContentFull = AtomTextTypeToText(x, "content", clearXmlValues: settings.ClearXmlContent_ContentTag);
+			}
 
 			if (e.Summary.IsNulle())
 				e.SummaryFull = AtomTextTypeToText(x, "summary", settings.ClearXmlContent_SummaryTag);
 
 			if (e.Title.IsNulle()) // if itunes didnt set
 				e.TitleFull = AtomTextTypeToText(x, "title", settings.ClearXmlContent_TitleTag);
-
 
 			// LINKS
 			e.SetLinksFromXmlAtomEntry(x);
@@ -430,6 +448,7 @@ namespace SimpleFeedNS
 				e.XmlEntry = x;
 
 			ConvertUrlsToLinks(e);
+
 			return e;
 		}
 
@@ -488,7 +507,7 @@ namespace SimpleFeedNS
 			if (!convertCats && !convertAllUrls)
 				return;
 
-			if (convertAllUrls)
+			if (convertAllUrls) // IF ConvertContentUrlsToLinks, then always do ConvertCategoryUrlsToLinks as well
 				convertCats = true;
 
 			if (convertCats) {
@@ -503,13 +522,61 @@ namespace SimpleFeedNS
 				}
 
 				string[] links = ex.GetLinks(fields);
+
 				if (links.NotNulle()) {
+
+					var srcsetsDict = e.SrcSet?.SrcSetImageUrlsDict;
+					bool hasSrcSets = srcsetsDict.NotNulle();
+
+					// for perf, let's only make this dictionary if it seems worth it
+					Dictionary<string, bool> tempLinksDict = e.Links.Count > 0 && links.Length > 2
+						? e.Links.ToDictionaryIgnoreDuplicateKeys(kv => kv.Url, kv => false)
+						: null;
+
 					for (int i = 0; i < links.Length; i++) {
+
 						string url = links[i];
+
+						if (hasSrcSets) {
+							if (srcsetsDict.ContainsKey(url))
+								continue;
+						}
+
+						if (tempLinksDict != null) {
+							if (tempLinksDict.ContainsKey(url))
+								continue;
+						} else if (e.Links.Any(lk => lk.Url == url))
+							continue;
+
 						var lnk = new SFLink(url) { DiscoveredLink = true };
 						if (lnk != null && lnk.IsValid)
 							e.AddLink(lnk);
 					}
+				}
+			}
+		}
+
+		public void SetImageUrlsFromContentImgTag(SFFeedEntry e)
+		{
+			if (e == null || !settings.GetImageUrlsFromContentImgTag || e.Content.IsNulle())
+				return;
+
+			var srcset = ex.GetImageTagFromRssDescriptionHtml(
+				e.Content,
+				maxStartIndexOfImgTag: 2048,
+				requiresIsWithinAnchorTag: true);
+
+			var src = srcset?.Src;
+
+			if (srcset != null && src != null) {
+
+				if (!e.Images().Any(img => img.Url.EqualsIgnoreCase(src.Url))) {
+					//SFLink.GetMimeTypeFromTypeOrExtension(null,
+					e.AddLink(new SFLink(src.Url, mimeType: BasicMimeType.image));
+				}
+
+				if (srcset.SrcSets.NotNulle()) {
+					e.SrcSet = srcset;
 				}
 			}
 		}
