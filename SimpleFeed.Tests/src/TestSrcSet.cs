@@ -23,7 +23,6 @@ namespace SimpleFeedNS.Tests
 				});
 
 			feed.Parse(_feedContent);
-			// h
 
 		}
 	}

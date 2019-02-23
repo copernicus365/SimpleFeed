@@ -372,7 +372,7 @@ namespace SimpleFeedNS
 			// TITLE
 			if (e.Title.IsNulle()) { // itunes overrides
 				string title = (string)x.Element("title");
-				e.Title = ClearXmlTagsIf(settings.ClearXmlContent_TitleTag, title, true, settings.HtmlDecodeTextValues);
+				e.Title = ClearHtmlTagsIf(settings.ClearXmlContent_TitleTag, title, true, settings.HtmlDecodeTextValues);
 			}
 
 			// AUTHOR
@@ -400,7 +400,7 @@ namespace SimpleFeedNS
 				// it was an RSS `description` field, I assume bec ATOM Content is not that
 				// (hmmm, but can't it be if type=html was set???) For now though continue with
 				// what we had till further research
-				e.Content = ClearXmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content, true, settings.HtmlDecodeTextValues);
+				e.Content = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content, true, settings.HtmlDecodeTextValues);
 			}
 
 			if (settings.KeepXmlDocument)
@@ -720,7 +720,7 @@ namespace SimpleFeedNS
 
 		#endregion
 
-		public static string ClearXmlTagsIf(bool conditional, string value, bool trim, bool htmlDecode)
+		public static string ClearHtmlTagsIf(bool conditional, string value, bool trim, bool htmlDecode)
 		{
 			if (value.IsNulle())
 				return null;
@@ -729,10 +729,25 @@ namespace SimpleFeedNS
 				value = value.TrimIfNeeded();
 
 			if (conditional) {
-				if (htmlDecode)
-					value = TextFuncs.ClearXmlTagsAndHtmlDecode(value, trim);
-				else
-					value = TextFuncs.ClearXmlTags(value, trim);
+
+				bool convertWithMinimalMarkdown = true; // hardcoding this right now
+
+				if (htmlDecode) {
+					//value = TextFuncs.ClearXmlTagsAndHtmlDecode(value, trim);
+
+					value = TextFuncs.ClearHtmlTagsAndHtmlDecode(
+						value,
+						convertWithMinimalMarkdown: convertWithMinimalMarkdown,
+						trim: trim);
+				}
+				else {
+					//value = TextFuncs.ClearXmlTags(value, trim);
+
+					value = TextFuncs.ClearHtmlTags(
+						value,
+						convertWithMinimalMarkdown: convertWithMinimalMarkdown,
+						trim: trim);
+				}
 			}
 			return value;
 		}
@@ -750,9 +765,9 @@ namespace SimpleFeedNS
 
 				bool htmlDecode = settings.HtmlDecodeTextValues;
 
-				e.Content = ClearXmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content, true, htmlDecode);
-				e.Summary = ClearXmlTagsIf(settings.ClearXmlContent_SummaryTag, e.Summary, true, htmlDecode);
-				e.SubTitle = ClearXmlTagsIf(settings.ClearXmlContent_TitleTag, e.SubTitle, true, htmlDecode);
+				e.Content = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content, true, htmlDecode);
+				e.Summary = ClearHtmlTagsIf(settings.ClearXmlContent_SummaryTag, e.Summary, true, htmlDecode);
+				e.SubTitle = ClearHtmlTagsIf(settings.ClearXmlContent_TitleTag, e.SubTitle, true, htmlDecode);
 
 				//int? duration = entry.Element(xname_iTunes_Duration).ToIntN();
 
@@ -780,7 +795,7 @@ namespace SimpleFeedNS
 			if (val.IsNulle())
 				return null;
 
-			val = ClearXmlTagsIf(clearXmlValues, val, true, settings.HtmlDecodeTextValues);
+			val = ClearHtmlTagsIf(clearXmlValues, val, true, settings.HtmlDecodeTextValues);
 
 			string typ = (string)e.Attribute("type");
 			return new SFText() { Value = val, Type = typ };
