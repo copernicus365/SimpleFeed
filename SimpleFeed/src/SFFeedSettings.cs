@@ -30,6 +30,22 @@ namespace SimpleFeedNS
 		public bool HtmlDecodeTextValues { get; set; } = true;
 
 		/// <summary>
+		/// FALSE by default, set to true to have the older xml tag stripper
+		/// used, as opposed to the much superior html tag stripper. This setting
+		/// may only be here temporarily, in order to visualize the difference 
+		/// between the old and the new.
+		/// </summary>
+		public bool ClearXmlContent_BasicXmlTagStrip { get; set; } = false;
+
+		/// <summary>
+		/// TRUE by default: Allows the html tag stripping process to convert a minimal 
+		/// number of html elements to markdown. In a very simple and basic way, to be clear,
+		/// e.g. paragraphs and breaks are given line breaks, bold and italic are responded to,
+		/// and list-items are treated as bullets.
+		/// </summary>
+		public bool ClearXmlContent_ConvertHtmlTagsToMinimalMarkdown { get; set; } = true;
+
+		/// <summary>
 		/// When adding categories, detect if the value is a link and if so,
 		/// add that url to the Links for that entry.
 		/// </summary>

@@ -115,7 +115,8 @@ namespace SimpleFeedNS
 				return sfVal.Value;
 			else {
 				string txt = sfVal.Value;
-				txt = SimpleFeed.ClearHtmlTagsIf(clearHtmlTags, txt, trim: true, htmlDecode: true);
+				txt = this.ParentSettings.ParentFeed.ClearHtmlTagsIf(clearHtmlTags, txt);
+					//SimpleFeed.ClearHtmlTagsIfStatic(clearHtmlTags, txt, trim: true, htmlDecode: true);
 
 				if (maxLen > 0 && txt != null && txt.Length > maxLen)
 					txt = txt.SubstringMax((int)maxLen, ellipsis: "...", tryBreakOnWord: true);
