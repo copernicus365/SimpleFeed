@@ -10,9 +10,6 @@ namespace SimpleFeedNS
 		public string Type { get; set; }
 		public string Value { get; set; }
 
-		public override string ToString()
-		{
-			return "[" + this.Type + "] " + Value;
-		}
+		public override string ToString() => $"[{Type}] {Value}";
 	}
 }

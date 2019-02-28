@@ -19,14 +19,18 @@ namespace SimpleFeedNS
 
 		public static readonly XNamespace ns_Atom = "http://www.w3.org/2005/Atom";
 		public static readonly XNamespace ns_DC = "http://purl.org/dc/elements/1.1/";
+		/// <summary>http://www.rssboard.org/rss-profile#namespace-elements-content-encoded</summary>
+		public static readonly XNamespace ns_Content = "http://purl.org/rss/1.0/modules/content/";
 		public static readonly XNamespace ns_iTunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
 		public static readonly XNamespace ns_rawvoice = "http://www.rawvoice.com/rawvoiceRssModule/";
-		public static readonly XNamespace ns_yahoomrss = "http://search.yahoo.com/mrss/"; // http://www.rssboard.org/media-rss#media-content http://www.rssboard.org/media-rss
+		/// <summary>http://www.rssboard.org/media-rss#media-content http://www.rssboard.org/media-rss</summary>
+		public static readonly XNamespace ns_yahoomrss = "http://search.yahoo.com/mrss/";
 
 		public static readonly XName xname_Atom_Updated = ns_Atom + "updated";
 		public static readonly XName xname_Atom_Published = ns_Atom + "published";
 		public static readonly XName xname_DC_Date = ns_DC + "date";
 		public static readonly XName xname_DC_Creator = ns_DC + "creator";
+		public static readonly XName xname_Content_Encoded = ns_Content + "encoded";
 		public static readonly XName xname_iTunes_Author = ns_iTunes + "author";
 
 		/// <summary>
@@ -226,9 +230,17 @@ namespace SimpleFeedNS
 			}
 
 			try {
-				bool bom = (data[0] == 239 && data[1] == 187 && data[2] == 191); // Detect BOM, 239, 187, 191
+				bool bom = DataStartsWIthBOM(data);
+
 				int substract = bom ? 3 : 0;
-				string feedStr = Encoding.UTF8.GetString(data, bom ? substract : 0, data.Length - substract);
+
+				// note: Parse of string also handles BOM (new feature!), but that requires a stinking full substring,
+				// whereas here with bytes, if there is a BOM, we can just by-pass it up front when calling GetString
+				string feedStr = Encoding.UTF8.GetString(
+					data,
+					bom ? substract : 0,
+					data.Length - substract);
+
 				return Parse(feedStr);
 			}
 			catch (Exception ex) {
@@ -236,6 +248,35 @@ namespace SimpleFeedNS
 				messages.AppendLine("Exception was caught: \r\n" + ex.ToString());
 				return null;
 			}
+		}
+
+		public static bool DataStartsWIthBOM(byte[] data)
+		{
+			if (data == null || data.Length < 3)
+				return false;
+
+			// See also: Encoding.UTF8.GetPreamble()
+			bool hasBom = (data[0] == 239 && data[1] == 187 && data[2] == 191); // Detect BOM, 239, 187, 191
+
+			return hasBom;
+		}
+
+		/// <summary>
+		/// You can get this or test it originally with: Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble())[0];
+		/// But no need, this way we have a constant. Equals, as bytes: `239, 187, 191`
+		/// </summary>
+		public const char BOMChar = (char)65279;
+
+		public static bool FixBOMIfNeeded(ref string str)
+		{
+			if (str == null || str.Length < 3)
+				return false;
+
+			bool hasBom = str[0] == BOMChar;
+			if (hasBom)
+				str = str.Substring(1);
+
+			return hasBom;
 		}
 
 		public IList<SFFeedEntry> Parse(string feed)
@@ -247,7 +288,10 @@ namespace SimpleFeedNS
 			}
 
 			try {
+				bool hadBOM = FixBOMIfNeeded(ref feed);
+
 				XElement doc = XElement.Parse(feed); // XLinqToXml.GetNamespaceIgnorantXElement(feed);  FREEZEs, takes like many minutes, when bad XML input. Does not immediately throw, need to diagnose why, but until then, use the slower other method
+
 				if (this.settings.KeepXmlDocument)
 					Document = doc;
 
@@ -371,37 +415,48 @@ namespace SimpleFeedNS
 
 			// TITLE
 			if (e.Title.IsNulle()) { // itunes overrides
-				string title = (string)x.Element("title");
+				string title = x.Element("title").ValueN().NullIfEmptyTrimmed();
 				e.Title = ClearHtmlTagsIf(settings.ClearXmlContent_TitleTag, title); //, true, settings.HtmlDecodeTextValues);
 			}
 
 			// AUTHOR
-			if (e.Author.IsNulle()) { // itunes overrides
-				SFAuthorFull auth = GetAuthorFromXmlRssEntry(x);
-				e.AuthorFull = auth;
+			if (e.Author.IsNulle()) // itunes overrides
+				e.AuthorFull = GetAuthorFromXmlRssEntry(x);
+
+			//! CONTENT / DESCRIPTION
+
+			string description = x.Element("description").ValueN().NullIfEmptyTrimmed();
+			string content_enc = x.Element(xname_Content_Encoded).ValueN().NullIfEmptyTrimmed();
+
+			bool summaryIsFromItunes = e.Summary.NotNulle();
+			bool contentFromPurlContentEncoded = content_enc != null;
+			//bool contentFromDescriptionTag = false; // <-- not using this variable right now, but we might later...
+
+			if (content_enc == null && description != null) {
+
+				// See: https://stackoverflow.com/questions/7220670/difference-between-description-and-contentencoded-tags-in-rss2/54905457#54905457 (https://stackoverflow.com/a/54905457/264031)
+
+				//contentFromDescriptionTag = true;
+				content_enc = description;
+				description = null;
 			}
 
-			bool contentWasRssDescriptionTag = false;
-
-			// CONTENT / description
-			if (e.Content.IsNulle()) { // itunes overrides
-				string content = x.Element("description").ValueN().NullIfEmptyTrimmed();
-
-				if (content != null) {
-					contentWasRssDescriptionTag = true;
-					e.Content = content;
-				}
+			if (description != null && !summaryIsFromItunes) {
+				// itunes summary DEFINITELY must win for summary (!!), 
+				// given the outlandish uncertainty of RSS on description tag
+				e.Summary = ClearHtmlTagsIf(settings.ClearXmlContent_SummaryTag, description);
 			}
 
-			SetImageUrlsFromContentImgTag(e); // need to run this BEFORE we escape content
+			if (content_enc.NotNulle()) {
+				if (contentFromPurlContentEncoded) // then we KNOW content field will be html content
+					e.ContentFull.Type = "text/html";
 
-			if (contentWasRssDescriptionTag) {
-				// I'm not totally sure why we were only doing this clearing of xml tags if 
-				// it was an RSS `description` field, I assume bec ATOM Content is not that
-				// (hmmm, but can't it be if type=html was set???) For now though continue with
-				// what we had till further research
-				e.Content = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content); //, true, settings.HtmlDecodeTextValues);
+				e.ContentFull.Value = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, content_enc);
 			}
+
+			// NOTE: both content and summary variables should be UNCHANGED from the XML values
+			// (so should NOT have been htmlTagCleared yet, no fear)
+			SetImageUrlsFromContentImgTag(e, content_enc ?? description);
 
 			if (settings.KeepXmlDocument)
 				e.XmlEntry = x;
@@ -427,19 +482,23 @@ namespace SimpleFeedNS
 
 			e.AddMeta(x);
 
-			if (e.Author.IsNulle())
+			if (e.Author.IsNulle()) // let itunes override
 				e.AuthorFull = GetAuthorFromXmlAtomEntry(x);
 
-			if (e.Content.IsNulle()) {
-				SetImageUrlsFromContentImgTag(e); // gotta set before messing with 
-				e.ContentFull = AtomTextTypeToText(x, "content", clearXmlValues: settings.ClearXmlContent_ContentTag);
-			}
+			(string titleVal, string titleMType) = AtomTextAndTypeFromXElem(x, "title");
+			(string summaryVal, string summaryMType) = AtomTextAndTypeFromXElem(x, "summary");
+			(string contentVal, string contentMType) = AtomTextAndTypeFromXElem(x, "content");
 
-			if (e.Summary.IsNulle())
-				e.SummaryFull = AtomTextTypeToText(x, "summary", settings.ClearXmlContent_SummaryTag);
+			if (titleVal.NotNulle()) // let the ATOM 'title' overrule the itunes one
+				e.TitleFull = AtomTextTypeToText(titleVal, titleMType, settings.ClearXmlContent_TitleTag);
 
-			if (e.Title.IsNulle()) // if itunes didnt set
-				e.TitleFull = AtomTextTypeToText(x, "title", settings.ClearXmlContent_TitleTag);
+			if (summaryVal.NotNulle()) // let the ATOM 'summary' overrule the itunes one
+				e.SummaryFull = AtomTextTypeToText(summaryVal, summaryMType, settings.ClearXmlContent_SummaryTag);
+
+			if (contentVal.NotNulle())
+				e.ContentFull = AtomTextTypeToText(contentVal, contentMType, settings.ClearXmlContent_ContentTag);
+
+			SetImageUrlsFromContentImgTag(e, contentVal ?? summaryVal);
 
 			// LINKS
 			e.SetLinksFromXmlAtomEntry(x);
@@ -545,7 +604,8 @@ namespace SimpleFeedNS
 						if (tempLinksDict != null) {
 							if (tempLinksDict.ContainsKey(url))
 								continue;
-						} else if (e.Links.Any(lk => lk.Url == url))
+						}
+						else if (e.Links.Any(lk => lk.Url == url))
 							continue;
 
 						var lnk = new SFLink(url) { DiscoveredLink = true };
@@ -556,13 +616,13 @@ namespace SimpleFeedNS
 			}
 		}
 
-		public void SetImageUrlsFromContentImgTag(SFFeedEntry e)
+		public void SetImageUrlsFromContentImgTag(SFFeedEntry e, string content)
 		{
-			if (e == null || !settings.GetImageUrlsFromContentImgTag || e.Content.IsNulle())
+			if (e == null || !settings.GetImageUrlsFromContentImgTag || content.IsNulle())
 				return;
 
 			var srcset = ex.GetImageTagFromRssDescriptionHtml(
-				e.Content,
+				content,
 				maxStartIndexOfImgTag: 2048,
 				requiresIsWithinAnchorTag: true);
 
@@ -736,9 +796,9 @@ namespace SimpleFeedNS
 		}
 
 		public static string ClearHtmlTagsIfStatic(
-			bool conditional, 
-			string value, 
-			bool trim, 
+			bool conditional,
+			string value,
+			bool trim,
 			bool htmlDecode,
 			bool convertWithMinimalMarkdown = true,
 			bool basicXmlTagStrip = false)
@@ -755,10 +815,10 @@ namespace SimpleFeedNS
 
 				if (htmlDecode) {
 					if (basicXmlTagStrip) {
-						value = TextFuncs.ClearXmlTagsAndHtmlDecode(value, trim);
+						value = XmlTextFuncs.ClearXmlTagsAndHtmlDecode(value, trim);
 					}
 					else {
-						value = TextFuncs.ClearHtmlTagsAndHtmlDecode(
+						value = XmlTextFuncs.ClearHtmlTagsAndHtmlDecode(
 							value,
 							convertWithMinimalMarkdown: convertWithMinimalMarkdown,
 							trim: trim);
@@ -766,10 +826,10 @@ namespace SimpleFeedNS
 				}
 				else {
 					if (basicXmlTagStrip) {
-						value = TextFuncs.ClearXmlTags(value, trim);
+						value = XmlTextFuncs.ClearXmlTags(value, trim);
 					}
 					else {
-						value = TextFuncs.ClearHtmlTags(
+						value = XmlTextFuncs.ClearHtmlTags(
 							value,
 							convertWithMinimalMarkdown: convertWithMinimalMarkdown,
 							trim: trim);
@@ -792,7 +852,7 @@ namespace SimpleFeedNS
 
 				bool htmlDecode = settings.HtmlDecodeTextValues;
 
-				e.Content = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content); //, true, htmlDecode);
+				// REMOVING THIS: We never were setting `e.Content` in this itunes stuff anyways! // e.Content = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content); //, true, htmlDecode);
 				e.Summary = ClearHtmlTagsIf(settings.ClearXmlContent_SummaryTag, e.Summary); //, true, htmlDecode);
 				e.SubTitle = ClearHtmlTagsIf(settings.ClearXmlContent_TitleTag, e.SubTitle); //, true, htmlDecode);
 
@@ -813,19 +873,39 @@ namespace SimpleFeedNS
 
 		#region ATOM
 
-		SFText AtomTextTypeToText(XElement elem, string elemName, bool clearXmlValues = false)
+		static (string value, string type) AtomTextAndTypeFromXElem(XElement elem, string elemName)
 		{
 			XElement e = elem.Element(elemName);
-			if (e == null)
-				return null;
-			string val = e.Value;
-			if (val.IsNulle())
-				return null;
+			if (e != null) {
+				string val = e.Value;
+				if (val.NotNulle()) {
+					string typ = e.Attribute("type").ValueN().NullIfEmptyTrimmed();
+					return (val, typ);
+				}
+			}
+			return (null, null);
+		}
 
-			val = ClearHtmlTagsIf(clearXmlValues, val); //, true, settings.HtmlDecodeTextValues);
+		SFText AtomTextTypeToText(XElement elem, string elemName, bool clearHtmlTags = false)
+		{
+			(string val, string mtype) = AtomTextAndTypeFromXElem(elem, elemName);
 
-			string typ = (string)e.Attribute("type");
-			return new SFText() { Value = val, Type = typ };
+			if (val.NotNulle()) {
+				val = ClearHtmlTagsIf(clearHtmlTags, val); //, true, settings.HtmlDecodeTextValues);
+
+				return new SFText() { Value = val, Type = mtype };
+			}
+			return null;
+		}
+
+		SFText AtomTextTypeToText(string val, string mtype, bool clearHtmlTags = false)
+		{
+			if (val.NotNulle()) {
+				val = ClearHtmlTagsIf(clearHtmlTags, val); //, true, settings.HtmlDecodeTextValues);
+
+				return new SFText() { Value = val, Type = mtype };
+			}
+			return null;
 		}
 
 		public SFAuthorFull GetAuthorFromXmlAtomEntry(XElement entry)
