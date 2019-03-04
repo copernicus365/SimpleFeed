@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using DotNetXtensions; //using DotNetXtensionsPrivate;
 
 namespace SimpleFeedNS
 {
 	public class SFFeedSettings
 	{
+		public SFContentConversionSettings ContentSettings { get; set; } = new SFContentConversionSettings();
+
+
 		/// <summary>
 		/// If non-null, sets a limit to the number of entries that should be parsed (0 for none).
 		/// This is useful if you don't need to parse any of the entries (just need top-level
@@ -19,31 +16,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public int? NumberOfEntriesToParseLimit { get; set; }
 
-		public bool ClearXmlContent_ContentTag { get; set; } = false;
-
-		public bool ClearXmlContent_SummaryTag { get; set; } = true;
-
-		public bool ClearXmlContent_TitleTag { get; set; } = true;
-
 		public bool KeepXmlDocument { get; set; } = true;
-
-		public bool HtmlDecodeTextValues { get; set; } = true;
-
-		/// <summary>
-		/// FALSE by default, set to true to have the older xml tag stripper
-		/// used, as opposed to the much superior html tag stripper. This setting
-		/// may only be here temporarily, in order to visualize the difference 
-		/// between the old and the new.
-		/// </summary>
-		public bool ClearXmlContent_BasicXmlTagStrip { get; set; } = false;
-
-		/// <summary>
-		/// TRUE by default: Allows the html tag stripping process to convert a minimal 
-		/// number of html elements to markdown. In a very simple and basic way, to be clear,
-		/// e.g. paragraphs and breaks are given line breaks, bold and italic are responded to,
-		/// and list-items are treated as bullets.
-		/// </summary>
-		public bool ClearXmlContent_ConvertHtmlTagsToMinimalMarkdown { get; set; } = true;
 
 		/// <summary>
 		/// When adding categories, detect if the value is a link and if so,

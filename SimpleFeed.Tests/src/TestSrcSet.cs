@@ -18,12 +18,18 @@ namespace SimpleFeedNS.Tests
 
 			SimpleFeed feed = await SetFeed(
 				alterSettings: stg => {
+					stg.ContentSettings = new SFContentConversionSettings() {
+						ContentTag = SFContentConversionType.HtmlToMarkdown,
+						SummaryTag = SFContentConversionType.HtmlToMarkdown,
+						TitleTag = SFContentConversionType.HtmlToMarkdown,
+					};
 					stg.GetImageUrlsFromContentImgTag = true;
-					stg.ClearXmlContent_ContentTag = true;
+					//stg.ConvertHtmlContentInContentTag = true;
 				});
 
 			feed.Parse(_feedContent);
 
+			Assert.True(!feed.Error && feed.Items.NotNulle());
 		}
 	}
 }

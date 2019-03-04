@@ -99,33 +99,6 @@ namespace SimpleFeedNS
 		}
 
 		/// <summary>
-		/// Returns SummaryFull text value if its Value is not null or empty, else returns ContentFull.
-		/// Guaranteed non-null return.
-		/// </summary>
-		public string SummaryOrContent(bool clearHtmlTags = false, int? maxLen = null)
-		{
-			return clearVal(Summary.IsNulle() ? ContentFull : SummaryFull, clearHtmlTags, maxLen);
-		}
-
-		string clearVal(SFText sfVal, bool clearHtmlTags = false, int? maxLen = null)
-		{
-			if (sfVal == null)
-				return null;
-			else if (sfVal.Value.IsNulle())
-				return sfVal.Value;
-			else {
-				string txt = sfVal.Value;
-				txt = this.ParentSettings.ParentFeed.ClearHtmlTagsIf(clearHtmlTags, txt);
-					//SimpleFeed.ClearHtmlTagsIfStatic(clearHtmlTags, txt, trim: true, htmlDecode: true);
-
-				if (maxLen > 0 && txt != null && txt.Length > maxLen)
-					txt = txt.SubstringMax((int)maxLen, ellipsis: "...", tryBreakOnWord: true);
-
-				return txt;
-			}
-		}
-
-		/// <summary>
 		/// The entry summary. Returns / sets SummaryFull.Value.
 		/// </summary>
 		public string Summary {
@@ -576,3 +549,34 @@ namespace SimpleFeedNS
 		}
 	}
 }
+
+#region --- Removed: `SummaryOrContent` ---
+
+///// <summary>
+///// Returns SummaryFull text value if its Value is not null or empty, else returns ContentFull.
+///// Guaranteed non-null return.
+///// </summary>
+//public string SummaryOrContent(bool clearHtmlTags = false, int? maxLen = null)
+//{
+//	return clearVal(Summary.IsNulle() ? ContentFull : SummaryFull, clearHtmlTags, maxLen);
+//}
+
+//string clearVal(SFText sfVal, bool clearHtmlTags = false, int? maxLen = null)
+//{
+//	if (sfVal == null)
+//		return null;
+//	else if (sfVal.Value.IsNulle())
+//		return sfVal.Value;
+//	else {
+//		string txt = sfVal.Value;
+//		txt = this.ParentSettings.ParentFeed.ClearHtmlTagsIf(clearHtmlTags, txt);
+//			//SimpleFeed.ClearHtmlTagsIfStatic(clearHtmlTags, txt, trim: true, htmlDecode: true);
+
+//		if (maxLen > 0 && txt != null && txt.Length > maxLen)
+//			txt = txt.SubstringMax((int)maxLen, ellipsis: "...", tryBreakOnWord: true);
+
+//		return txt;
+//	}
+//}
+
+#endregion

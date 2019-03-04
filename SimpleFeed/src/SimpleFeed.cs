@@ -321,7 +321,6 @@ namespace SimpleFeedNS
 							SourceFeedType = SFFeedType.RSS;
 							RssItemToFeedEntry(channel, this, true);
 
-							int i = 1;
 							Items = channel
 								.Elements("item")
 								.TakeIf(limit > 0, limit)
@@ -413,10 +412,12 @@ namespace SimpleFeedNS
 
 			e.AddMeta(x);
 
+			var cntStg = settings.ContentSettings;
+
 			// TITLE
 			if (e.Title.IsNulle()) { // itunes overrides
 				string title = x.Element("title").ValueN().NullIfEmptyTrimmed();
-				e.Title = ClearHtmlTagsIf(settings.ClearXmlContent_TitleTag, title); //, true, settings.HtmlDecodeTextValues);
+				e.Title = ClearHtmlTagsIf(title, cntStg.TitleTag); //, true, settings.HtmlDecodeTextValues); // settings.ConvertHtmlContentInTitleTag
 			}
 
 			// AUTHOR
@@ -444,14 +445,14 @@ namespace SimpleFeedNS
 			if (description != null && !summaryIsFromItunes) {
 				// itunes summary DEFINITELY must win for summary (!!), 
 				// given the outlandish uncertainty of RSS on description tag
-				e.Summary = ClearHtmlTagsIf(settings.ClearXmlContent_SummaryTag, description);
+				e.Summary = ClearHtmlTagsIf(description, cntStg.SummaryTag); // settings.ConvertHtmlContentInSummaryTag
 			}
 
 			if (content_enc.NotNulle()) {
 				if (contentFromPurlContentEncoded) // then we KNOW content field will be html content
 					e.ContentFull.Type = "text/html";
 
-				e.ContentFull.Value = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, content_enc);
+				e.ContentFull.Value = ClearHtmlTagsIf(content_enc, cntStg.ContentTag); // settings.ConvertHtmlContentInContentTag
 			}
 
 			// NOTE: both content and summary variables should be UNCHANGED from the XML values
@@ -489,14 +490,16 @@ namespace SimpleFeedNS
 			(string summaryVal, string summaryMType) = AtomTextAndTypeFromXElem(x, "summary");
 			(string contentVal, string contentMType) = AtomTextAndTypeFromXElem(x, "content");
 
+			var cntStg = settings.ContentSettings;
+
 			if (titleVal.NotNulle()) // let the ATOM 'title' overrule the itunes one
-				e.TitleFull = AtomTextTypeToText(titleVal, titleMType, settings.ClearXmlContent_TitleTag);
+				e.TitleFull = AtomTextTypeToText(titleVal, titleMType, cntStg.TitleTag); // settings.ConvertHtmlContentInTitleTag);
 
 			if (summaryVal.NotNulle()) // let the ATOM 'summary' overrule the itunes one
-				e.SummaryFull = AtomTextTypeToText(summaryVal, summaryMType, settings.ClearXmlContent_SummaryTag);
+				e.SummaryFull = AtomTextTypeToText(summaryVal, summaryMType, cntStg.SummaryTag); // , settings.ConvertHtmlContentInSummaryTag);
 
 			if (contentVal.NotNulle())
-				e.ContentFull = AtomTextTypeToText(contentVal, contentMType, settings.ClearXmlContent_ContentTag);
+				e.ContentFull = AtomTextTypeToText(contentVal, contentMType, cntStg.ContentTag); // , settings.ConvertHtmlContentInContentTag);
 
 			SetImageUrlsFromContentImgTag(e, contentVal ?? summaryVal);
 
@@ -783,60 +786,61 @@ namespace SimpleFeedNS
 		public static bool ClearHtmlTagsWithOlderSimpleClearXmlTags = false;
 
 		public string ClearHtmlTagsIf(
-			bool conditional,
-			string value)
-		{
+			string value,
+			SFContentConversionType convType,
+			bool? htmlDecode = null)
+		{		
 			return ClearHtmlTagsIfStatic(
-				conditional,
+				convType,
 				value,
-				trim: true,
-				htmlDecode: settings.HtmlDecodeTextValues,
-				basicXmlTagStrip: settings.ClearXmlContent_BasicXmlTagStrip,
-				convertWithMinimalMarkdown: settings.ClearXmlContent_ConvertHtmlTagsToMinimalMarkdown);
+				htmlDecode: htmlDecode, // settings.HtmlDecodeTextValues,
+				htmlToMDConverter: _htmlToMDConverter);
 		}
 
+		OnePassHtmlToMarkdown _htmlToMDConverter = new OnePassHtmlToMarkdown();
+
 		public static string ClearHtmlTagsIfStatic(
-			bool conditional,
+			SFContentConversionType convType,
 			string value,
-			bool trim,
-			bool htmlDecode,
-			bool convertWithMinimalMarkdown = true,
-			bool basicXmlTagStrip = false)
+			bool? htmlDecode = null,
+			OnePassHtmlToMarkdown htmlToMDConverter = null)
 		{
+			// but note, at the moment, we are NEVER sending in this value, so effectively we're 
+			// always html-decoding right now
+			bool _htmlDecode = htmlDecode ?? true;
+
 			if (value.IsNulle())
 				return null;
 
-			if (trim && !conditional && !htmlDecode) // if (conditional && htmlDecode), then trim is already ran, so would be double hit
-				value = value.TrimIfNeeded();
+			switch (convType) {
+				case SFContentConversionType.HtmlToMarkdown:
+				case SFContentConversionType.SimpleHtmlTagStrip:
 
-			if (conditional) {
+					//if (!XmlTextFuncs.StringContainsAnyXmlTagsQuick(value))
+					//	return value.NullIfEmptyTrimmed();
 
-				//bool convertWithMinimalMarkdown = true; // hardcoding this right now
-
-				if (htmlDecode) {
-					if (basicXmlTagStrip) {
-						value = XmlTextFuncs.ClearXmlTagsAndHtmlDecode(value, trim);
-					}
-					else {
-						value = XmlTextFuncs.ClearHtmlTagsAndHtmlDecode(
+					value = (htmlToMDConverter ?? new OnePassHtmlToMarkdown())
+						.ConvertHtmlToMD(
 							value,
-							convertWithMinimalMarkdown: convertWithMinimalMarkdown,
-							trim: trim);
-					}
-				}
-				else {
-					if (basicXmlTagStrip) {
-						value = XmlTextFuncs.ClearXmlTags(value, trim);
-					}
-					else {
-						value = XmlTextFuncs.ClearHtmlTags(
-							value,
-							convertWithMinimalMarkdown: convertWithMinimalMarkdown,
-							trim: trim);
-					}
-				}
+							onlyCleanHtmlTags: convType == SFContentConversionType.SimpleHtmlTagStrip, //!convertWithMarkdown,
+							htmlDecode: _htmlDecode,
+							checkAndReturnIfNoXmlTags: true);
+					break;
+
+				case SFContentConversionType.None:
+					if (_htmlDecode)
+						value = System.Net.WebUtility.HtmlDecode(value);
+					break;
+
+				case SFContentConversionType.OldHtmlTagStrip:
+
+					value = _htmlDecode
+						? XmlTextFuncs.ClearXmlTagsAndHtmlDecode(value, trim: true)
+						: XmlTextFuncs.ClearXmlTags(value, trim: true);
+					break;
 			}
-			return value;
+
+			return value.NullIfEmptyTrimmed() ?? "";
 		}
 
 		public SFFeedEntry SetItunes(XElement entry, SFFeedEntry e)
@@ -850,11 +854,11 @@ namespace SimpleFeedNS
 				e.SubTitle = entry.Element(xname_iTunes_Subtitle).ValueN().TrimIfNeeded();
 				e.Summary = entry.Element(xname_iTunes_Summary).ValueN().TrimIfNeeded();
 
-				bool htmlDecode = settings.HtmlDecodeTextValues;
+				//bool htmlDecode = settings.HtmlDecodeTextValues;
 
 				// REMOVING THIS: We never were setting `e.Content` in this itunes stuff anyways! // e.Content = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content); //, true, htmlDecode);
-				e.Summary = ClearHtmlTagsIf(settings.ClearXmlContent_SummaryTag, e.Summary); //, true, htmlDecode);
-				e.SubTitle = ClearHtmlTagsIf(settings.ClearXmlContent_TitleTag, e.SubTitle); //, true, htmlDecode);
+				e.Summary = ClearHtmlTagsIf(e.Summary, SFContentConversionType.None); //, true, htmlDecode); // settings.ConvertHtmlContentInSummaryTag
+				e.SubTitle = ClearHtmlTagsIf(e.SubTitle, SFContentConversionType.None); //, true, htmlDecode); // settings.ConvertHtmlContentInTitleTag
 
 				//int? duration = entry.Element(xname_iTunes_Duration).ToIntN();
 
@@ -886,22 +890,11 @@ namespace SimpleFeedNS
 			return (null, null);
 		}
 
-		SFText AtomTextTypeToText(XElement elem, string elemName, bool clearHtmlTags = false)
-		{
-			(string val, string mtype) = AtomTextAndTypeFromXElem(elem, elemName);
-
-			if (val.NotNulle()) {
-				val = ClearHtmlTagsIf(clearHtmlTags, val); //, true, settings.HtmlDecodeTextValues);
-
-				return new SFText() { Value = val, Type = mtype };
-			}
-			return null;
-		}
-
-		SFText AtomTextTypeToText(string val, string mtype, bool clearHtmlTags = false)
+		SFText AtomTextTypeToText(string val, string mtype, SFContentConversionType convType) 
+			// bool clearHtmlTags = false)
 		{
 			if (val.NotNulle()) {
-				val = ClearHtmlTagsIf(clearHtmlTags, val); //, true, settings.HtmlDecodeTextValues);
+				val = ClearHtmlTagsIf(val, convType); //, true, settings.HtmlDecodeTextValues);
 
 				return new SFText() { Value = val, Type = mtype };
 			}
@@ -999,3 +992,60 @@ namespace SimpleFeedNS
 
 	}
 }
+
+#region --- Old 'ClearHtmlTagsIfStatic' ---
+
+//public static string ClearHtmlTagsIfStatic(
+//	SFContentConversionType convType, // bool conditional,
+//	string value,
+//	bool htmlDecode,
+//	bool convertWithMarkdown = true,
+//	bool basicXmlTagStrip = false,
+//	OnePassHtmlToMarkdown htmlToMDConverter = null)
+//{
+//	bool trim = true;
+
+//	if (value.IsNulle())
+//		return null;
+
+//	if (trim && !conditional && !htmlDecode) // if (conditional && htmlDecode), then trim is already ran, so would be double hit
+//		value = value.TrimIfNeeded();
+
+//	if (!conditional)
+//		return value;
+
+//	if (basicXmlTagStrip) {
+//		value = htmlDecode
+//			? XmlTextFuncs.ClearXmlTagsAndHtmlDecode(value, trim)
+//			: XmlTextFuncs.ClearXmlTags(value, trim);
+//	}
+//	else {
+//		//if (!XmlTextFuncs.StringContainsAnyXmlTagsQuick(value))
+//		//	return value.NullIfEmptyTrimmed();
+
+//		value = (htmlToMDConverter ?? new OnePassHtmlToMarkdown())
+//			.ConvertHtmlToMD(
+//				value,
+//				onlyCleanHtmlTags: !convertWithMarkdown,
+//				htmlDecode: htmlDecode,
+//				checkAndReturnIfNoXmlTags: true);
+//	}
+//	return value;
+//}
+
+
+// ---
+
+//SFText AtomTextTypeToText(XElement elem, string elemName, bool clearHtmlTags = false)
+//{
+//	(string val, string mtype) = AtomTextAndTypeFromXElem(elem, elemName);
+
+//	if (val.NotNulle()) {
+//		val = ClearHtmlTagsIf(clearHtmlTags, val); //, true, settings.HtmlDecodeTextValues);
+
+//		return new SFText() { Value = val, Type = mtype };
+//	}
+//	return null;
+//}
+
+#endregion

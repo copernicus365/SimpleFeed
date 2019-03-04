@@ -63,6 +63,9 @@
     <Compile Include="..\SimpleFeed\src\SFCategory.cs">
       <Link>src\SFCategory.cs</Link>
     </Compile>
+    <Compile Include="..\SimpleFeed\src\SFContentConversionSettings.cs">
+      <Link>src\SFContentConversionSettings.cs</Link>
+    </Compile>
     <Compile Include="..\SimpleFeed\src\SFFeedEntry.cs">
       <Link>src\SFFeedEntry.cs</Link>
     </Compile>
