@@ -65,6 +65,20 @@ namespace SimpleFeedNS
 		{
 			return BasicMimeTypesSFX.RelsDictionaryReverse[rel];
 		}
+
+		public static string Name(this SrcSizeType val)
+		{
+			switch (val) {
+				case SrcSizeType.Width:
+					return "width";
+				case SrcSizeType.PixelDensity:
+					return "pixel";
+				default:
+				case SrcSizeType.None:
+					return "none";
+			}
+		}
+
 	}
 }
 
