@@ -70,10 +70,10 @@ namespace SimpleFeedNS
 		/// before a certain distance.</param>
 		/// <param name="requiresIsWithinAnchorTag">If true, found img tag must be 
 		/// a direct child of an anchor tag.</param>
-		public SrcSet GetImageTagFromRssDescriptionHtml(
+		public SrcSet GetFirstImageTagFromHtmlText(
 			string desc, 
 			int maxStartIndexOfImgTag,
-			bool requiresIsWithinAnchorTag = true)
+			bool requiresIsWithinAnchorTag = false)
 		{
 			if (desc.IsNulle())
 				return null;
@@ -186,5 +186,6 @@ namespace SimpleFeedNS
 
 			return kvs;
 		}
+
 	}
 }

@@ -624,7 +624,7 @@ namespace SimpleFeedNS
 			if (e == null || !settings.GetImageUrlsFromContentImgTag || content.IsNulle())
 				return;
 
-			var srcset = ex.GetImageTagFromRssDescriptionHtml(
+			var srcset = ex.GetFirstImageTagFromHtmlText(
 				content,
 				maxStartIndexOfImgTag: 2048,
 				requiresIsWithinAnchorTag: true);
