@@ -106,5 +106,6 @@ namespace SimpleFeedNS
 
 			return srcs;
 		}
+
 	}
 }

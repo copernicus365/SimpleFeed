@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using DotNetXtensions; //using DotNetXtensionsPrivate;
+using DotNetXtensions.Text;
 
 namespace SimpleFeedNS
 {
@@ -626,8 +627,8 @@ namespace SimpleFeedNS
 
 			var srcset = ex.GetFirstImageTagFromHtmlText(
 				content,
-				maxStartIndexOfImgTag: 2048,
-				requiresIsWithinAnchorTag: true);
+				maxStartIndexOfImgTag: 2048);
+				//requiresIsWithinAnchorTag: true);
 
 			var src = srcset?.Src;
 

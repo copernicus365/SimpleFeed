@@ -11,26 +11,38 @@ namespace SimpleFeedNS.Tests
 {
 	public class TestSrcSet : FeedTestsBase
 	{
+		static string imgUrl = "https://static1.example.com/static/abc/t/abcedfg123/ge/Some+Cool+Idea+1K.png";
+		static string imgUrlFull = $"{imgUrl}?format=1200w";
 
-		static string Ex1 = @"<img class=""thumb-image"" data-image=""https://static1.squarespace.com/static/556c7d21e4b0159e7291d601/t/5c756b09ee6eb07a7f4bd9f2/1551199003020/Leadership+Podcast+Title+Graphic+4K.png"" data-image-dimensions=""1920x1080"" data-image-focal-point=""0.5,0.5"" alt=""Lorem Podcast Title Graphic 4K.png"" data-load=""false"" data-image-id=""4c7c6b99eb1fb0739f4fd9f5"" data-type=""image"" src=""https://static1.squarespace.com/static/556c7d21e4b0159e7291d601/t/5c756b09ee6eb07a7f4bd9f2/1551199003020/Leadership+Podcast+Title+Graphic+4K.png?format=1000w"" />
-            
- <p>Lorem ipsum...";
+		static string Html1 = $@" <p>howdy</p>
+<img  class='thumb-image' data-image=""{imgUrl}"" data-image-dimensions=1920x1080 data-image-focal-point=""0.5,0.5"" alt='Some Cool Pic 1K.png'  data-image-id=""abcedfg123"" data-type=""image"" src=""{imgUrl}?format=1200w"" data-load=false/>
+		<p>Hello world</p>";
 
 		ExtraTextFuncs efuncs = new ExtraTextFuncs();
 
 		[Fact]
-		public void Test2()
+		public void Test1()
 		{
-			string html = Ex1;
-			Dictionary<string, string> dict = ExtraTextFuncs.GetHtmlTagAttributes(html);
+			SrcSet srcset = efuncs.GetFirstImageTagFromHtmlText(Html1, 1000);
 
-			SrcSet srcset = efuncs.GetFirstImageTagFromHtmlText(html, 1000, false);
+			bool success = srcset != null && srcset.Src.Url == imgUrlFull;
 
 			Assert.True(srcset != null && srcset.Src.Url.NotNulle());
 		}
 
 		[Fact]
-		public async Task Test1()
+		public void OldHtmlExtract()
+		{
+			//string html = Ex1;
+			Dictionary<string, string> dict = ExtraTextFuncs.GetHtmlTagAttributes(Html1);
+
+			bool success = dict != null && dict.V("src") == imgUrl;
+			//Assert.True(success);
+		}
+
+
+		[Fact]
+		public async Task Test2()
 		{
 			//_testFeedUrl = NoCommitValues.TestSrcSet_FeedUrl;
 			_testFeedPath = NoCommitValues.TestSrcSet_FeedPath;

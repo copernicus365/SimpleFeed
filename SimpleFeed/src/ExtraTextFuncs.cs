@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DotNetXtensions;
+using DotNetXtensions.Text;
 
 namespace SimpleFeedNS
 {
@@ -65,86 +66,70 @@ namespace SimpleFeedNS
 		/// text field (ideally a content / description field within RSS item, containing html).
 		/// If found, we also try to find any parse any srcset information on the image tag.
 		/// </summary>
-		/// <param name="desc">Content</param>
+		/// <param name="html">Content</param>
 		/// <param name="maxStartIndexOfImgTag">Allows one to require the img tag to be found
 		/// before a certain distance.</param>
 		/// <param name="requiresIsWithinAnchorTag">If true, found img tag must be 
 		/// a direct child of an anchor tag.</param>
 		public SrcSet GetFirstImageTagFromHtmlText(
-			string desc, 
-			int maxStartIndexOfImgTag,
-			bool requiresIsWithinAnchorTag = false)
+			string html,
+			int maxStartIndexOfImgTag)
 		{
-			if (desc.IsNulle())
+			if (html.IsNulle())
 				return null;
 
-			if (maxStartIndexOfImgTag > desc.Length)
-				maxStartIndexOfImgTag = desc.Length - 1;
+			if (maxStartIndexOfImgTag > html.Length)
+				maxStartIndexOfImgTag = html.Length - 1;
 
-			int imgIdx = desc.IndexOf("<img ", 0, maxStartIndexOfImgTag);
+			int imgIdx = html.IndexOf("<img ", 0, maxStartIndexOfImgTag);
+			if (imgIdx < 0)
+				return null;
+			//DotNetXtensions.Text.HtmlTag tt = null;
 
-			if (imgIdx >= 0) {
+			var htmlTag = new HtmlTag();
 
-				// found an image tag, now find its end
-				int endImgIdx = desc.IndexOf("/>", imgIdx);
+			bool parseSuccess = htmlTag.Parse(html, imgIdx, findTagEnd: true);
 
-				if (endImgIdx < 15)
-					return null; // no end to img tag found, return
+			if (!parseSuccess
+				|| htmlTag.Attributes.IsNulle()
+				|| !htmlTag.Attributes.ContainsKey("src"))
+				return null;
 
-				// get the full "<img ... />" tag
-				string imgTag = desc.Substring(imgIdx, endImgIdx - imgIdx + 2); // +2 recovers "/>"
+			var imgAttributes = htmlTag.Attributes;
 
-				if (requiresIsWithinAnchorTag) {
-					if (imgIdx == 0) // gotta test to stay in range in below search `imgIdx - 1`
-						return null;
+			SrcSet srcSet = _AttributeKeyValuesToSrcSet(imgAttributes);
 
-					int anchorTagIdx = desc.LastIndexOf('<', imgIdx - 1); // search backwards from start of img tag for next open pbracket
-
-					if (anchorTagIdx < 0
-						|| desc[anchorTagIdx + 1] != 'a' 
-						|| !desc[anchorTagIdx + 2].IsWhitespace())
-						return null;
-				}
-
-				var imgAttributes = GetHtmlTagAttributes(imgTag);
-
-				if (imgAttributes.NotNulle()) {
-					string src = imgAttributes.V("src");
-					string srcSet = imgAttributes.V("srcset");
-
-					if (src.IsNulle())
-						return null;
-
-					var srcImg = new SrcSetImg() {
-						Url = src,
-						Size = imgAttributes.V("width").ToInt(0),
-						SizeType = SrcSizeType.Width
-					};
-
-					SrcSet srcset = new SrcSet() {
-						Src = srcImg,
-						Sizes = imgAttributes.V("sizes"),
-						SrcSets = SrcSet.ParseSrcSets(srcSet, out SrcSizeType sizeType),
-						SrcSetsSizeType = sizeType
-					};
-
-					srcset.InitValues();
-
-					return srcset;
-				}
-			}
-
-			return null;
+			return srcSet;
 		}
 
-		/// <summary>
-		/// Unfortunately I forgot where I got this rx, somewhere on stackoverflow, just had to escape the 
-		/// double-quotes for this string literal. 
-		/// Can't find it here, but maybe: https://stackoverflow.com/questions/317053/regular-expression-for-extracting-tag-attributes
-		/// </summary>
-		static Regex _rxHtmlAttributeKVs = 
-			new Regex(@"(\S+)\s*=\s*[\""']?((?:.(?![\""']?\s+(?:\S+)=|[>\""']))?[^\""']*)[\""']?",
-			RegexOptions.Compiled);
+		static SrcSet _AttributeKeyValuesToSrcSet(Dictionary<string, string> kvs)
+		{
+			if (kvs.IsNulle())
+				return null;
+
+			string src = kvs.V("src");
+			string srcSet = kvs.V("srcset");
+
+			if (src.IsNulle())
+				return null;
+
+			var srcImg = new SrcSetImg() {
+				Url = src,
+				Size = kvs.V("width").ToInt(0),
+				SizeType = SrcSizeType.Width
+			};
+
+			SrcSet srcset = new SrcSet() {
+				Src = srcImg,
+				Sizes = kvs.V("sizes"),
+				SrcSets = SrcSet.ParseSrcSets(srcSet, out SrcSizeType sizeType),
+				SrcSetsSizeType = sizeType
+			};
+
+			srcset.InitValues();
+
+			return srcset;
+		}
 
 		/// <summary>
 		/// Attempts to get all of the key-value attributes from this html-type tag.
@@ -187,5 +172,42 @@ namespace SimpleFeedNS
 			return kvs;
 		}
 
+		/// <summary>
+		/// Unfortunately I forgot where I got this rx, somewhere on stackoverflow, just had to escape the 
+		/// double-quotes for this string literal. 
+		/// Can't find it here, but maybe: https://stackoverflow.com/questions/317053/regular-expression-for-extracting-tag-attributes
+		/// </summary>
+		static Regex _rxHtmlAttributeKVs =
+			new Regex(@"(\S+)\s*=\s*[\""']?((?:.(?![\""']?\s+(?:\S+)=|[>\""']))?[^\""']*)[\""']?",
+			RegexOptions.Compiled);
+
 	}
 }
+
+#region --- Old GetFirstImageTagFromHtmlText ---
+
+//// found an image tag, now find its end
+//int endImgIdx = html.IndexOf("/>", imgIdx);
+
+//if (endImgIdx < 15)
+//	return null; // no end to img tag found, return
+
+//// get the full "<img ... />" tag
+//string imgTag = html.Substring(imgIdx, endImgIdx - imgIdx + 2); // +2 recovers "/>"
+
+// OLD:
+//var imgAttributes = GetHtmlTagAttributes(imgTag);
+
+//if (requiresIsWithinAnchorTag) {
+//	if (imgIdx == 0) // gotta test to stay in range in below search `imgIdx - 1`
+//		return null;
+
+//	int anchorTagIdx = desc.LastIndexOf('<', imgIdx - 1); // search backwards from start of img tag for next open pbracket
+
+//	if (anchorTagIdx < 0
+//		|| desc[anchorTagIdx + 1] != 'a'
+//		|| !desc[anchorTagIdx + 2].IsWhitespace())
+//		return null;
+//}
+
+#endregion

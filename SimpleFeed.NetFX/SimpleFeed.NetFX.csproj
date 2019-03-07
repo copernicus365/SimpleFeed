@@ -34,8 +34,7 @@
     <DocumentationFile>bin\Release\SimpleFeed.NetFX.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetXtensions.Common.NetFX, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="DotNetXtensions.Common.NetFX">
       <HintPath>..\..\DotNetXtensions\NETFX\DotNetXtensions.Common.NetFX\bin\Debug\DotNetXtensions.Common.NetFX.dll</HintPath>
     </Reference>
     <Reference Include="DotNetXtensions.NetFX">
