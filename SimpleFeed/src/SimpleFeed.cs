@@ -4,12 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using DotNetXtensions; //using DotNetXtensionsPrivate;
-using DotNetXtensions.Text;
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
-
 	public class SimpleFeed : SFFeedEntry, IList<SFFeedEntry>
 	{
 		// future analysis: http://www.feedforall.com/itune-tutorial-tags.htm#category
@@ -418,7 +416,7 @@ namespace SimpleFeedNS
 			// TITLE
 			if (e.Title.IsNulle()) { // itunes overrides
 				string title = x.Element("title").ValueN().NullIfEmptyTrimmed();
-				e.Title = ClearHtmlTagsIf(title, cntStg.TitleTag); //, true, settings.HtmlDecodeTextValues); // settings.ConvertHtmlContentInTitleTag
+				e.Title = ConvertHtmlContent(title, cntStg.TitleTag); //, true, settings.HtmlDecodeTextValues); // settings.ConvertHtmlContentInTitleTag
 			}
 
 			// AUTHOR
@@ -446,14 +444,14 @@ namespace SimpleFeedNS
 			if (description != null && !summaryIsFromItunes) {
 				// itunes summary DEFINITELY must win for summary (!!), 
 				// given the outlandish uncertainty of RSS on description tag
-				e.Summary = ClearHtmlTagsIf(description, cntStg.SummaryTag); // settings.ConvertHtmlContentInSummaryTag
+				e.Summary = ConvertHtmlContent(description, cntStg.SummaryTag); // settings.ConvertHtmlContentInSummaryTag
 			}
 
 			if (content_enc.NotNulle()) {
 				if (contentFromPurlContentEncoded) // then we KNOW content field will be html content
 					e.ContentFull.Type = "text/html";
 
-				e.ContentFull.Value = ClearHtmlTagsIf(content_enc, cntStg.ContentTag); // settings.ConvertHtmlContentInContentTag
+				e.ContentFull.Value = ConvertHtmlContent(content_enc, cntStg.ContentTag); // settings.ConvertHtmlContentInContentTag
 			}
 
 			// NOTE: both content and summary variables should be UNCHANGED from the XML values
@@ -622,13 +620,14 @@ namespace SimpleFeedNS
 
 		public void SetImageUrlsFromContentImgTag(SFFeedEntry e, string content)
 		{
-			if (e == null || !settings.GetImageUrlsFromContentImgTag || content.IsNulle())
+			var contentSettings = settings.ContentSettings;
+			if (e == null || content.IsNulle() || contentSettings == null || !contentSettings.GetFirstImageTagFromHtml)
 				return;
 
-			var srcset = ex.GetFirstImageTagFromHtmlText(
+			var srcset = ex.GetFirstImageTagFromHtmlContent(
 				content,
+				contentSettings,
 				maxStartIndexOfImgTag: 2048);
-				//requiresIsWithinAnchorTag: true);
 
 			var src = srcset?.Src;
 
@@ -786,62 +785,16 @@ namespace SimpleFeedNS
 
 		public static bool ClearHtmlTagsWithOlderSimpleClearXmlTags = false;
 
-		public string ClearHtmlTagsIf(
-			string value,
-			SFContentConversionType convType,
+		public string ConvertHtmlContent(
+			string input,
+			SFContentConversionType conversionType,
 			bool? htmlDecode = null)
-		{		
-			return ClearHtmlTagsIfStatic(
-				convType,
-				value,
-				htmlDecode: htmlDecode, // settings.HtmlDecodeTextValues,
-				htmlToMDConverter: _htmlToMDConverter);
-		}
-
-		OnePassHtmlToMarkdown _htmlToMDConverter = new OnePassHtmlToMarkdown();
-
-		public static string ClearHtmlTagsIfStatic(
-			SFContentConversionType convType,
-			string value,
-			bool? htmlDecode = null,
-			OnePassHtmlToMarkdown htmlToMDConverter = null)
 		{
-			// but note, at the moment, we are NEVER sending in this value, so effectively we're 
-			// always html-decoding right now
-			bool _htmlDecode = htmlDecode ?? true;
-
-			if (value.IsNulle())
+			input = input.NullIfEmptyTrimmed();
+			if (input.IsNulle())
 				return null;
 
-			switch (convType) {
-				case SFContentConversionType.HtmlToMarkdown:
-				case SFContentConversionType.SimpleHtmlTagStrip:
-
-					//if (!XmlTextFuncs.StringContainsAnyXmlTagsQuick(value))
-					//	return value.NullIfEmptyTrimmed();
-
-					value = (htmlToMDConverter ?? new OnePassHtmlToMarkdown())
-						.ConvertHtmlToMD(
-							value,
-							onlyCleanHtmlTags: convType == SFContentConversionType.SimpleHtmlTagStrip, //!convertWithMarkdown,
-							htmlDecode: _htmlDecode,
-							checkAndReturnIfNoXmlTags: true);
-					break;
-
-				case SFContentConversionType.None:
-					if (_htmlDecode)
-						value = System.Net.WebUtility.HtmlDecode(value);
-					break;
-
-				case SFContentConversionType.OldHtmlTagStrip:
-
-					value = _htmlDecode
-						? XmlTextFuncs.ClearXmlTagsAndHtmlDecode(value, trim: true)
-						: XmlTextFuncs.ClearXmlTags(value, trim: true);
-					break;
-			}
-
-			return value.NullIfEmptyTrimmed() ?? "";
+			return settings.ContentSettings.ConvertHtmlContent(input, conversionType, htmlDecode);
 		}
 
 		public SFFeedEntry SetItunes(XElement entry, SFFeedEntry e)
@@ -858,8 +811,8 @@ namespace SimpleFeedNS
 				//bool htmlDecode = settings.HtmlDecodeTextValues;
 
 				// REMOVING THIS: We never were setting `e.Content` in this itunes stuff anyways! // e.Content = ClearHtmlTagsIf(settings.ClearXmlContent_ContentTag, e.Content); //, true, htmlDecode);
-				e.Summary = ClearHtmlTagsIf(e.Summary, SFContentConversionType.None); //, true, htmlDecode); // settings.ConvertHtmlContentInSummaryTag
-				e.SubTitle = ClearHtmlTagsIf(e.SubTitle, SFContentConversionType.None); //, true, htmlDecode); // settings.ConvertHtmlContentInTitleTag
+				e.Summary = ConvertHtmlContent(e.Summary, SFContentConversionType.None); //, true, htmlDecode); // settings.ConvertHtmlContentInSummaryTag
+				e.SubTitle = ConvertHtmlContent(e.SubTitle, SFContentConversionType.None); //, true, htmlDecode); // settings.ConvertHtmlContentInTitleTag
 
 				//int? duration = entry.Element(xname_iTunes_Duration).ToIntN();
 
@@ -895,7 +848,7 @@ namespace SimpleFeedNS
 			// bool clearHtmlTags = false)
 		{
 			if (val.NotNulle()) {
-				val = ClearHtmlTagsIf(val, convType); //, true, settings.HtmlDecodeTextValues);
+				val = ConvertHtmlContent(val, convType); //, true, settings.HtmlDecodeTextValues);
 
 				return new SFText() { Value = val, Type = mtype };
 			}
@@ -1017,11 +970,11 @@ namespace SimpleFeedNS
 
 //	if (basicXmlTagStrip) {
 //		value = htmlDecode
-//			? XmlTextFuncs.ClearXmlTagsAndHtmlDecode(value, trim)
-//			: XmlTextFuncs.ClearXmlTags(value, trim);
+//			? Xml-TextFuncs.ClearXmlTagsAndHtmlDecode(value, trim)
+//			: Xml-TextFuncs.ClearXmlTags(value, trim);
 //	}
 //	else {
-//		//if (!XmlTextFuncs.StringContainsAnyXmlTagsQuick(value))
+//		//if (!Xml-TextFuncs.StringContainsAnyXmlTagsQuick(value))
 //		//	return value.NullIfEmptyTrimmed();
 
 //		value = (htmlToMDConverter ?? new OnePassHtmlToMarkdown())

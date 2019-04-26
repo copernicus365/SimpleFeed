@@ -230,9 +230,9 @@ namespace SimpleFeedNS
 						Metas.Add(meta);
 
 						//BasicMimeType typ = isLinkRVMeta.V(meta.Type, BasicMimeType.none);
-						string url = TextFuncs.IsWebLink(meta.Url)
+						string url = ExtraTextFuncs.IsWebLink(meta.Url)
 							? meta.Url
-							: (TextFuncs.IsWebLink(meta.Value) ? meta.Value : null);
+							: (ExtraTextFuncs.IsWebLink(meta.Value) ? meta.Value : null);
 
 						if (url != null) {
 							var lnk = new SFLink(url, meta.Type);

@@ -36,7 +36,7 @@ namespace SimpleFeedNS.Tests
 				ConvertCategoryUrlsToLinks = true,
 				ConvertContentUrlsToLinks = true,
 				AlterUTCDatesToThisTimezone = TimeZoneInfo.Local,
-				GetImageUrlsFromContentImgTag = true,
+				//GetImageUrlsFromContentImgTag = true,
 			};
 
 			alterSettings?.Invoke(settings);

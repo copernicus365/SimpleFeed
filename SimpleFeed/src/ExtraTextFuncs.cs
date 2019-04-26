@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DotNetXtensions;
-using DotNetXtensions.Text;
 
 namespace SimpleFeedNS
 {
@@ -37,68 +36,36 @@ namespace SimpleFeedNS
 			return null;
 		}
 
-		void OldCodeCategoryToLink(SFCategory cat)
-		{
-			string value = cat.Value;
-
-			// this is for categories, not just links. 
-			// check greater than 10 to match the minimal link size (http://bit.ly/)
-			if (value.CountN() > 13) {
-
-				// -- move this outside of here if needed later... --
-				string linkVal = TextFuncs.RemoveBrackets(value);
-
-				if (TextFuncs.IsWebLink(linkVal, checkForWww: true)) {
-
-					if (linkVal[0] == 'w')
-						linkVal = "http://" + linkVal;
-
-					//AddLink(new SFLink() { Url = linkVal });
-
-					//if (_deleteCategoryIfConvertedToLink)
-					//return false;
-				}
-			}
-		}
-
 		/// <summary>
-		/// Searches for the *first* <![CDATA[`<img ... />`]]> tag within the input
-		/// text field (ideally a content / description field within RSS item, containing html).
-		/// If found, we also try to find any parse any srcset information on the image tag.
+		/// Searches for the *first* `img` tag within the input string (ideally a content / 
+		/// description field within an RSS item). 
 		/// </summary>
-		/// <param name="html">Content</param>
-		/// <param name="maxStartIndexOfImgTag">Allows one to require the img tag to be found
-		/// before a certain distance.</param>
-		/// <param name="requiresIsWithinAnchorTag">If true, found img tag must be 
-		/// a direct child of an anchor tag.</param>
-		public SrcSet GetFirstImageTagFromHtmlText(
+		/// <param name="html"></param>
+		/// <param name="contentSettings"></param>
+		/// <param name="maxStartIndexOfImgTag"></param>
+		public SrcSet GetFirstImageTagFromHtmlContent(
 			string html,
-			int maxStartIndexOfImgTag)
+			SFContentConversionSettings contentSettings,
+			int maxStartIndexOfImgTag = -1)
 		{
-			if (html.IsNulle())
+			if (html.IsNulle() || maxStartIndexOfImgTag < 0 || !contentSettings.GetFirstImageTagFromHtml)
 				return null;
 
-			if (maxStartIndexOfImgTag > html.Length)
-				maxStartIndexOfImgTag = html.Length - 1;
+			int maxSearchLen = html.Length;
+			if (maxStartIndexOfImgTag >= 0)
+				maxSearchLen = (maxStartIndexOfImgTag + 15).Min(html.Length); // 15, just a rough min after start of img tag, still need an href + the url itself...
 
-			int imgIdx = html.IndexOf("<img ", 0, maxStartIndexOfImgTag);
+			int imgIdx = html.IndexOf("<img ", 0, maxSearchLen);
 			if (imgIdx < 0)
 				return null;
-			//DotNetXtensions.Text.HtmlTag tt = null;
 
-			var htmlTag = new HtmlTag();
+			Dictionary<string, string> imgAttributes = contentSettings
+				.GetFirstImageTagAttributesFromHtml(html, imgIdx);
 
-			bool parseSuccess = htmlTag.Parse(html, imgIdx, findTagEnd: true);
-
-			if (!parseSuccess
-				|| htmlTag.Attributes.IsNulle()
-				|| !htmlTag.Attributes.ContainsKey("src"))
+			if (imgAttributes.IsNulle() || !imgAttributes.ContainsKey("src"))
 				return null;
 
-			var imgAttributes = htmlTag.Attributes;
-
 			SrcSet srcSet = _AttributeKeyValuesToSrcSet(imgAttributes);
-
 			return srcSet;
 		}
 
@@ -181,6 +148,32 @@ namespace SimpleFeedNS
 			new Regex(@"(\S+)\s*=\s*[\""']?((?:.(?![\""']?\s+(?:\S+)=|[>\""']))?[^\""']*)[\""']?",
 			RegexOptions.Compiled);
 
+		public static bool IsWebLink(string s, bool checkForWww = true)
+		{
+			if (s != null && s.Length > 9) { //http://bit.ly/ = 14 chars, www.msn.ly
+				if (checkForWww &&
+					s[0] == 'w' &&
+					s[1] == 'w' &&
+					s[2] == 'w' &&
+					s[3] == '.') {
+					return true;
+				}
+				else if (
+					s[0] == 'h' &&
+					s[1] == 't' &&
+					s[2] == 't' &&
+					s[3] == 'p') {
+
+					if (
+						(s[4] == ':' && s[5] == '/' && s[6] == '/') ||
+						(s[4] == 's' && s[5] == ':' && s[6] == '/' && s[7] == '/')) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
 	}
 }
 
@@ -211,3 +204,40 @@ namespace SimpleFeedNS
 //}
 
 #endregion
+
+/* --- */
+
+//void OldCodeCategoryToLink(SFCategory cat)
+//{
+//	string value = cat.Value;
+
+//	// this is for categories, not just links. 
+//	// check greater than 10 to match the minimal link size (http://bit.ly/)
+//	if (value.CountN() > 13) {
+
+//		// -- move this outside of here if needed later... --
+//		string linkVal = TextFuncs.RemoveBrackets(value);
+
+//		if (TextFuncs.IsWebLink(linkVal, checkForWww: true)) {
+
+//			if (linkVal[0] == 'w')
+//				linkVal = "http://" + linkVal;
+
+//			//AddLink(new SFLink() { Url = linkVal });
+
+//			//if (_deleteCategoryIfConvertedToLink)
+//			//return false;
+//		}
+//	}
+//}
+
+///// <summary>
+///// Searches for the *first* <![CDATA[`<img ... />`]]> tag within the input
+///// text field (ideally a content / description field within RSS item, containing html).
+///// If found, we also try to find any parse any srcset information on the image tag.
+///// </summary>
+///// <param name="html">Content</param>
+///// <param name="maxStartIndexOfImgTag">Allows one to require the img tag to be found
+///// before a certain distance.</param>
+///// <param name="requiresIsWithinAnchorTag">If true, found img tag must be 
+///// a direct child of an anchor tag.</param>

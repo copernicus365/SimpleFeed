@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DotNetXtensions;
+using System;
+using System.Collections.Generic;
 
 namespace SimpleFeedNS
 {
@@ -12,41 +14,43 @@ namespace SimpleFeedNS
 
 	public class SFContentConversionSettings
 	{
-		public SFContentConversionType ContentTag { get; set; } = SFContentConversionType.HtmlToMarkdown;
+		public virtual SFContentConversionType ContentTag { get; set; } = SFContentConversionType.HtmlToMarkdown;
 
-		public SFContentConversionType SummaryTag { get; set; } = SFContentConversionType.HtmlToMarkdown;
+		public virtual SFContentConversionType SummaryTag { get; set; } = SFContentConversionType.HtmlToMarkdown;
 
-		public SFContentConversionType TitleTag { get; set; } = SFContentConversionType.HtmlToMarkdown;
+		public virtual SFContentConversionType TitleTag { get; set; } = SFContentConversionType.HtmlToMarkdown;
 
-		public bool HtmlDecodeTextValues { get; set; } = true;
+		public virtual bool HtmlDecodeTextValues { get; set; } = true;
 
-		#region --- OLD settings, moved to ContentConversionSettings ---
+		/// <summary>
+		/// True in order to extract image urls from a content `img`
+		/// tag (often which uses `srcset`).
+		/// </summary>
+		public virtual bool GetFirstImageTagFromHtml { get; set; } = false;
 
-		//public bool ConvertHtmlContentInContentTag { get; set; } = false;
+		public virtual string ConvertHtmlContent(
+			string input,
+			SFContentConversionType conversionType,
+			bool? htmlDecode = null)
+		{
+			if (input == null)
+				return null;
 
-		//public bool ConvertHtmlContentInSummaryTag { get; set; } = true;
+			input = input.NullIfEmptyTrimmed();
+			if (input == null)
+				return null;
 
-		//public bool ConvertHtmlContentInTitleTag { get; set; } = true;
+			bool _htmlDecode = htmlDecode ?? HtmlDecodeTextValues;
+			if (_htmlDecode)
+				input = System.Net.WebUtility.HtmlDecode(input);
 
-		//public bool HtmlDecodeTextValues { get; set; } = true;
+			return input.NullIfEmptyTrimmed() ?? "";
+		}
 
-		///// <summary>
-		///// TRUE by default, allows the html tag stripping process to convert a minimal 
-		///// number of html elements to markdown. In a very simple and basic way, to be clear,
-		///// e.g. paragraphs and breaks are given line breaks, bold and italic are responded to,
-		///// and list-items are treated as bullets.
-		///// </summary>
-		//public bool ConvertHtmlContentToMarkdown { get; set; } = true;
-
-		///// <summary>
-		///// FALSE by default, set to true to have the older xml tag stripper
-		///// used, as opposed to the much superior html tag stripper. This setting
-		///// may only be here temporarily, in order to visualize the difference 
-		///// between the old and the new.
-		///// </summary>
-		//public bool UseOldXmlTagStripForHtmlContentConversion { get; set; } = false;
-
-		#endregion
+		public virtual Dictionary<string, string> GetFirstImageTagAttributesFromHtml(
+			string html,
+			int startIndex)
+			=> null;
 
 	}
 }

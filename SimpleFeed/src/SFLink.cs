@@ -35,7 +35,7 @@ namespace SimpleFeedNS
 
 			IsValid = false;
 
-			if (!TextFuncs.IsWebLink(url, checkForWww: true))
+			if (!ExtraTextFuncs.IsWebLink(url, checkForWww: true))
 				return;
 
 			if (url[0] == 'w') // above check determines if [0] == 'w', then this == 'www.'
@@ -83,7 +83,7 @@ namespace SimpleFeedNS
 				rel = rel.TrimIfNeeded();
 
 				if (rel.NotNulle()) {
-					if (BasicMimeTypesSFX.RelsDictionary.TryGetValue(rel, out SFRel _rl))
+					if (SFRelTypesX.RelsDictionary.TryGetValue(rel, out SFRel _rl))
 						Rel = _rl;
 					else
 						RelOther = rel;

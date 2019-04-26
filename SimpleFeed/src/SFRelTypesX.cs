@@ -5,7 +5,7 @@ using DotNetXtensions; //using DotNetXtensionsPrivate;
 
 namespace SimpleFeedNS
 {
-	public static class BasicMimeTypesSFX
+	public static class SFRelTypesX
 	{
 		public static Dictionary<string, SFRel> RelsDictionary = new Dictionary<string, SFRel>()
 			.AddN("alternate", SFRel.alternate)
@@ -22,7 +22,7 @@ namespace SimpleFeedNS
 			.AddN("src", SFRel.src);
 
 		public static Dictionary<SFRel, string> RelsDictionaryReverse = RelsDictionary.ReverseDictionary(
-			new string[] { "alternate home", "home" });
+			ignore: new string[] { "alternate home", "home" });
 
 	}
 }

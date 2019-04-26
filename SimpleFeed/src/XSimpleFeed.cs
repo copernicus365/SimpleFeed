@@ -63,7 +63,7 @@ namespace SimpleFeedNS
 
 		public static string ToStringFast(this SFRel rel)
 		{
-			return BasicMimeTypesSFX.RelsDictionaryReverse[rel];
+			return SFRelTypesX.RelsDictionaryReverse[rel];
 		}
 
 		public static string Name(this SrcSizeType val)
