@@ -25,12 +25,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="DotNetXtensions">
-			<HintPath>..\..\DotNetXtensions\DotNetXtensions\bin\Debug\netstandard2.0\DotNetXtensions.dll</HintPath>
-		</Reference>
-		<Reference Include="DotNetXtensions.MimeTypes">
-			<HintPath>..\..\DotNetXtensions\DotNetXtensions.MimeTypes\bin\Debug\netstandard2.0\DotNetXtensions.MimeTypes.dll</HintPath>
-		</Reference>
+	  <PackageReference Include="DotNetXtensions" Version="3.0.1" />
+	  <PackageReference Include="DotNetXtensions.MimeTypes" Version="3.0.1" />
 	</ItemGroup>
 
 </Project>
