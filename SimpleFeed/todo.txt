@@ -1,4 +1,0 @@
-﻿TODO:
-
-RSS feeds can have an ATOM updated field, handle this:
-<atom:updated xmlns:atom="http://www.w3.org/2005/Atom">2014-10-21T13:27:16.942-07:00</atom:updated>

@@ -10,11 +10,7 @@ A rich and extremely tolerant .NET RSS and ATOM feed parser. The central objecti
 
 4) The focus is on deserializing, though the task of serializing seems the simpler task and might be added in the future.
 
-## SimpleFeed.NetFX
+## Todo
 
-The main project is built against netstandard 2.0, but for some of us where there have been problems when our own projects reference a netstandard project, at least for now, this extra `SimpleFeed.NetFX` project has been made, built against NET 4.7.1, and with 0 (zero) source files except for the basic project files, as main source are links to the main project.
-
-## DotNetXtensions dependency
-
-There is extensive usage of DotNetXtensions in this project, so for now there is a dependency on DotNetXtensions and DotNetXtensions.Common (which contains `BasicMimeTypes` and related). We have gone back and forth over the years between directly referencing DNX project, while at other times keeping a local copy to the project of needed private helper code. But since `BasicMimeTypes` is something we want to expose publicly, and to not limit that type to only `SimpleFeed`, this seems the best thing to do.
-
+RSS feeds can have an ATOM updated field, handle this:
+`<atom:updated xmlns:atom="http://www.w3.org/2005/Atom">2014-10-21T13:27:16.942-07:00</atom:updated>`
