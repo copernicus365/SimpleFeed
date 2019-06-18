@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>3.1.0</Version>
-		<AssemblyVersion>3.1.0.0</AssemblyVersion>
-		<FileVersion>3.1.0.0</FileVersion>
+		<Version>3.1.1</Version>
+		<AssemblyVersion>3.1.1.0</AssemblyVersion>
+		<FileVersion>3.1.1.0</FileVersion>
 		<Authors>Nicholas Petersen</Authors>
 		<RepositoryUrl>https://github.com/copernicus365/SimpleFeed</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/copernicus365/SimpleFeed</PackageProjectUrl>
@@ -28,8 +28,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DotNetXtensions" Version="3.0.1" />
-	  <PackageReference Include="DotNetXtensions.MimeTypes" Version="3.0.1" />
+	  <PackageReference Include="DotNetXtensions" Version="3.1.0" />
+	  <PackageReference Include="DotNetXtensions.MimeTypes" Version="3.1.0" />
 	</ItemGroup>
 
 </Project>
