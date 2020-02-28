@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using DotNetXtensions; //using DotNetXtensionsPrivate;
@@ -30,18 +30,18 @@ namespace SimpleFeedNS
 			BasicMimeType mimeType = BasicMimeType.none)
 		{
 			url = url.NullIfEmptyTrimmed();
-			if (url.IsNulle())
+			if(url.IsNulle())
 				return;
 
 			IsValid = false;
 
-			if (!ExtraTextFuncs.IsWebLink(url, checkForWww: true))
+			if(!ExtraTextFuncs.IsWebLink(url, checkForWww: true))
 				return;
 
-			if (url[0] == 'w') // above check determines if [0] == 'w', then this == 'www.'
+			if(url[0] == 'w') // above check determines if [0] == 'w', then this == 'www.'
 				url = "http://" + url;
 
-			if (url.IndexOf(' ') > 0) // is pry a quicker check than always running the replace...
+			if(url.IndexOf(' ') > 0) // is pry a quicker check than always running the replace...
 				url = url.Replace(" ", "%20"); // some links have spaces in them that invalidate the IsWellFormedOriginalString check below
 
 			try {
@@ -52,7 +52,7 @@ namespace SimpleFeedNS
 				// check, but that is largely useless in some of my tests
 
 				Uri uri = new Uri(url);
-				if (uri == null || !uri.IsWellFormedOriginalString())
+				if(uri == null || !uri.IsWellFormedOriginalString())
 					return;
 				this.Uri = uri;
 				Url = uri.AbsoluteUri; // do NOT do .ToString(), that is the 'canonical' form which ruins escapes, like replacing ' ' (space) for %20! dumb
@@ -75,15 +75,15 @@ namespace SimpleFeedNS
 			Length = length.Min(0);
 
 			// --- set Rel ---
-			if (isRssEncl)
+			if(isRssEncl)
 				Rel = SFRel.enclosure;
 			else {
 				Rel = SFRel.none;
 
 				rel = rel.TrimIfNeeded();
 
-				if (rel.NotNulle()) {
-					if (SFRelTypesX.RelsDictionary.TryGetValue(rel, out SFRel _rl))
+				if(rel.NotNulle()) {
+					if(SFRelTypesX.RelsDictionary.TryGetValue(rel, out SFRel _rl))
 						Rel = _rl;
 					else
 						RelOther = rel;
@@ -94,13 +94,13 @@ namespace SimpleFeedNS
 				.GetMostQualifiedMimeType(mimeType);
 
 			// need to move this somewhere else at some time
-			if (MimeType == BasicMimeType.none || (Ext.IsNulle() && mimeTypeStr.IsNulle())) { // hmmm, i guess let this override if these conditions met 
+			if(MimeType == BasicMimeType.none || (Ext.IsNulle() && mimeTypeStr.IsNulle())) { // hmmm, i guess let this override if these conditions met 
 				string linkHost = Uri.Host;
-				if (linkHost.CountN() > 5) { // && link.LinkType.IsAudio() == false) {
-					if (linkHost.Contains("vimeo")) {
+				if(linkHost.CountN() > 5) { // && link.LinkType.IsAudio() == false) {
+					if(linkHost.Contains("vimeo")) {
 						MimeType = BasicMimeType.video_vimeo;
 					}
-					else if (linkHost.Contains("youtu")) {
+					else if(linkHost.Contains("youtu")) {
 						MimeType = BasicMimeType.video_youtube;
 					}
 				}
@@ -114,12 +114,12 @@ namespace SimpleFeedNS
 			inputMimeType = inputMimeType.NullIfEmptyTrimmed();
 			BasicMimeType mime = BasicMimeType.none;
 
-			if (inputMimeType.NotNulle()) {
+			if(inputMimeType.NotNulle()) {
 				//TypeOriginal = inputMimeType;
-				mime = BasicMimeType.none.GetMimeTypeFromString(inputMimeType, allowGenericMatchOnNotFound: true);
-				//.LinkMimeTypesDictionary.V(typ, BasicMimeType.none);
+				mime = BasicMimeTypesX.ParseMimeType(inputMimeType, allowGenericMatchOnNotFound: true);
 			}
-			if (extension.NotNulle() && mime.HasNoSubtypeOrNone()) {
+
+			if(extension.NotNulle() && mime.IsGenericTypeOrNone()) { //.HasNoSubtypeOrNone()) {
 				BasicMimeType _extMime = BasicMimeType.none.GetMimeTypeFromFileExtension(extension);
 				mime = mime.GetMostQualifiedMimeType(_extMime);
 			}
@@ -171,7 +171,7 @@ namespace SimpleFeedNS
 			get { return _mimeType; }
 			set {
 				_mimeType = value;
-				this.Type = value.ToMimeTypeString();
+				this.Type = value.MimeTypeString();
 			}
 		}
 		BasicMimeType _mimeType = BasicMimeType.none;
@@ -200,13 +200,13 @@ namespace SimpleFeedNS
 		/// <param name="xLink">Supposed to be an XML tag representing an ATOM Link.</param>
 		public static SFLink AtomXmlLinkToLink(XElement xLink)
 		{
-			if (xLink == null)
+			if(xLink == null)
 				return null;
 
 			string url = null;
-			if (xLink.Name.LocalName == "link")
+			if(xLink.Name.LocalName == "link")
 				url = ((string)xLink.Attribute("href"));
-			else if (xLink.Name.LocalName == "content")
+			else if(xLink.Name.LocalName == "content")
 				url = ((string)xLink.Attribute("src"));
 			else
 				return null;
@@ -216,18 +216,18 @@ namespace SimpleFeedNS
 
 		public static SFLink YahooMRSSXmlMediaElementToLink(XElement xLink)
 		{
-			if (xLink == null)
+			if(xLink == null)
 				return null;
 
 			string _type = xLink.Attribute("type").ValueN().TrimN();
-			if (_type.IsNulle()) {
+			if(_type.IsNulle()) {
 				_type = xLink.Attribute("medium").ValueN().TrimN();
 				//if(_type.NotNulle() && !_type.Contains("/")) // not needed, our type parser will handle this (I think)
 				//	_type = _type + "/null";
 			}
 
 			string url = xLink.Attribute("url").ValueN().NullIfEmptyTrimmed();
-			if (url.IsNulle())
+			if(url.IsNulle())
 				return null;
 
 			var lnk = new SFLink(
@@ -241,7 +241,7 @@ namespace SimpleFeedNS
 				mimeType: BasicMimeType.audio // though the "Media RSS Spec" can be for pics or vids too, I doubt it's used much ever for that, presumption of audio is good one (I think)
 				);
 
-			if (!lnk.IsValid)
+			if(!lnk.IsValid)
 				return null;
 
 			lnk.Height = xLink.Attribute("height").ToInt().Min(0);
@@ -271,12 +271,12 @@ namespace SimpleFeedNS
 
 		public static SFLink RssXmlLinkOrEnclosureToLink(XElement xLink)
 		{
-			if (xLink == null)
+			if(xLink == null)
 				return null;
 
 			bool isLinkNotEnclosure = xLink.Name == "link";
-			if (isLinkNotEnclosure == false) {
-				if (xLink.Name != "enclosure")
+			if(isLinkNotEnclosure == false) {
+				if(xLink.Name != "enclosure")
 					return null;
 			}
 			string url = isLinkNotEnclosure
@@ -288,11 +288,11 @@ namespace SimpleFeedNS
 
 		public static SFLink GetLink(XElement xLink, string url, bool isAtom, bool isRssEncl = false)
 		{
-			if (xLink == null || url.IsNulle())
+			if(xLink == null || url.IsNulle())
 				return null;
 
 			url = url.NullIfEmptyTrimmed();
-			if (url == null)
+			if(url == null)
 				return null;
 
 			return new SFLink(url,
@@ -357,13 +357,13 @@ namespace SimpleFeedNS
 		/// </summary>
 		public string GetFirstAltText()
 		{
-			if (Title.NotNulle())
+			if(Title.NotNulle())
 				return Title;
-			if (AltText.NotNulle())
+			if(AltText.NotNulle())
 				return AltText;
-			if (Caption.NotNulle())
+			if(Caption.NotNulle())
 				return Caption;
-			if (Description.NotNulle())
+			if(Description.NotNulle())
 				return Description;
 			return null;
 		}
