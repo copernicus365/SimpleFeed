@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using DotNetXtensions; //using DotNetXtensionsPrivate;
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
@@ -29,14 +29,40 @@ namespace SimpleFeedNS
 			bool isRssEncl = false,
 			BasicMimeType mimeType = BasicMimeType.none)
 		{
-			url = url.NullIfEmptyTrimmed();
-			if(url.IsNulle())
+			IsValid = FixOrValidateInputUrl(url, out string _url, out Uri uri, out string ext);
+			if(!IsValid)
 				return;
 
-			IsValid = false;
+			Url = _url;
+			Uri = uri;
+			Ext = ext;
+			Title = title.NullIfEmptyTrimmed();
+			Length = length.Min(0);
+
+			bool relWasValid = FixOrValidateInputRel(rel, isRssEncl, out SFRel _Rel, out string _RelOther);
+			Rel = _Rel;
+			RelOther = _RelOther;
+
+			MimeType = GetMimeTypeFromTypeOrExtension(mimeTypeStr, Ext, Uri, detectYtubeVimeoTypes: true)
+				.GetMostQualifiedMimeType(mimeType);
+		}
+
+		/// <summary>
+		/// Used by <see cref="SFLink"/> constructor, includes logic to ensure the url is
+		/// a valid URI, gets a corresponding uri and extension, while fixing things such as
+		/// links without a protocol (defaults to http).
+		/// </summary>
+		public static bool FixOrValidateInputUrl(string inUrl, out string url, out Uri uri, out string ext)
+		{
+			url = inUrl.NullIfEmptyTrimmed();
+			uri = null;
+			ext = null;
+
+			if(url.IsNulle())
+				return false;
 
 			if(!ExtraTextFuncs.IsWebLink(url, checkForWww: true))
-				return;
+				return false;
 
 			if(url[0] == 'w') // above check determines if [0] == 'w', then this == 'www.'
 				url = "http://" + url;
@@ -51,77 +77,91 @@ namespace SimpleFeedNS
 				// So we're still doing the IsWellFormedOriginalString
 				// check, but that is largely useless in some of my tests
 
-				Uri uri = new Uri(url);
+				uri = new Uri(url);
 				if(uri == null || !uri.IsWellFormedOriginalString())
-					return;
-				this.Uri = uri;
-				Url = uri.AbsoluteUri; // do NOT do .ToString(), that is the 'canonical' form which ruins escapes, like replacing ' ' (space) for %20! dumb
+					return false;
+
+				url = uri.AbsoluteUri; // do NOT do .ToString(), that is the 'canonical' form which ruins escapes, like replacing ' ' (space) for %20! dumb
 			}
 			catch {
-				return;
+				return false;
 			}
 
 			// do NOT place this within the try/catch. there should be NO errors in this call
 			// so if it does throw we need to know the bug
-			UriPathInfo pathInfo = new UriPathInfo(this.Uri.AbsolutePath);
+			UriPathInfo pathInfo = new UriPathInfo(uri.AbsolutePath);
 
-			Ext = pathInfo.Extension;
+			ext = pathInfo.Extension;
 			//Ext = UriPathInfo.GetExtFromUrl(_uri.AbsolutePath); 
 			// BasicMimeTypesX.GetExtFromUrl(_uri.AbsolutePath); //AbsolutePath removes any query string ending
+			return true;
+		}
 
-			IsValid = true;
+		public static bool FixOrValidateInputRel(
+			string rel,
+			bool isRssEncl,
+			out SFRel Rel,
+			out string relOther)
+		{
+			relOther = null;
 
-			Title = title.TrimIfNeeded().QQQ(null);
-			Length = length.Min(0);
-
-			// --- set Rel ---
 			if(isRssEncl)
 				Rel = SFRel.enclosure;
 			else {
 				Rel = SFRel.none;
 
-				rel = rel.TrimIfNeeded();
+				rel = rel.NullIfEmptyTrimmed();
 
-				if(rel.NotNulle()) {
+				if(rel != null) {
 					if(SFRelTypesX.RelsDictionary.TryGetValue(rel, out SFRel _rl))
 						Rel = _rl;
 					else
-						RelOther = rel;
+						relOther = rel;
 				}
 			}
 
-			MimeType = GetMimeTypeFromTypeOrExtension(mimeTypeStr, Ext)
-				.GetMostQualifiedMimeType(mimeType);
-
-			// need to move this somewhere else at some time
-			if(MimeType == BasicMimeType.none || (Ext.IsNulle() && mimeTypeStr.IsNulle())) { // hmmm, i guess let this override if these conditions met 
-				string linkHost = Uri.Host;
-				if(linkHost.CountN() > 5) { // && link.LinkType.IsAudio() == false) {
-					if(linkHost.Contains("vimeo")) {
-						MimeType = BasicMimeType.video_vimeo;
-					}
-					else if(linkHost.Contains("youtu")) {
-						MimeType = BasicMimeType.video_youtube;
-					}
-				}
-			}
+			return true;
 		}
+
 
 		public bool IsValid { get; }
 
-		public static BasicMimeType GetMimeTypeFromTypeOrExtension(string inputMimeType, string extension)
+		/// <summary></summary>
+		/// <param name="mimeType"></param>
+		/// <param name="extension"></param>
+		/// <param name="uri">Input uri to extend some possible detections, currently
+		/// only used when <paramref name="detectYtubeVimeoTypes"/>.</param>
+		/// <param name="detectYtubeVimeoTypes">True to detect a mime-type for youtube / vimeo.</param>
+		public static BasicMimeType GetMimeTypeFromTypeOrExtension(
+			string mimeType,
+			string extension,
+			Uri uri = null,
+			bool detectYtubeVimeoTypes = false)
 		{
-			inputMimeType = inputMimeType.NullIfEmptyTrimmed();
+			mimeType = mimeType.NullIfEmptyTrimmed();
 			BasicMimeType mime = BasicMimeType.none;
 
-			if(inputMimeType.NotNulle()) {
-				//TypeOriginal = inputMimeType;
-				mime = BasicMimeTypesX.ParseMimeType(inputMimeType, allowGenericMatchOnNotFound: true);
+			if(mimeType != null) {
+				mime = BasicMimeTypesX.ParseMimeType(mimeType, allowGenericMatchOnNotFound: true);
 			}
 
 			if(extension.NotNulle() && mime.IsGenericTypeOrNone()) { //.HasNoSubtypeOrNone()) {
 				BasicMimeType _extMime = BasicMimeType.none.GetMimeTypeFromFileExtension(extension);
 				mime = mime.GetMostQualifiedMimeType(_extMime);
+			}
+
+			if(detectYtubeVimeoTypes && uri != null) {
+				if(mime == BasicMimeType.none || (extension.IsNulle() && mimeType == null)) { // hmmm, i guess let this override if these conditions met 
+					string linkHost = uri.Host;
+					if(linkHost.CountN() > 5) {
+						if(linkHost.Contains("vimeo")) {
+							mime = BasicMimeType.video_vimeo;
+						}
+						else if(linkHost.Contains("youtu")) {
+							mime = BasicMimeType.video_youtube;
+						}
+					}
+				}
 			}
 
 			return mime;
@@ -370,3 +410,36 @@ namespace SimpleFeedNS
 
 	}
 }
+
+//public interface ISFLink
+//{
+//	bool DiscoveredLink { get; set; }
+//	string Ext { get; set; }
+//	int Height { get; set; }
+//	bool IsEnclosureLinkType { get; }
+//	bool IsValid { get; }
+//	int Length { get; set; }
+//	BasicMimeType MimeType { get; set; }
+//	SFRel Rel { get; set; }
+//	string RelOther { get; set; }
+//	string RelString { get; }
+//	string Type { get; set; }
+//	string TypeOriginal { get; set; }
+//	Uri Uri { get; }
+//	string Url { get; }
+//	int Width { get; set; }
+
+//	SFLink Copy();
+//	bool IsImage();
+//}
+
+//public interface ISFMediaDetails
+//{
+//	string AltText { get; set; }
+//	string Caption { get; set; }
+//	string Description { get; set; }
+//	string RelUrl { get; set; }
+//	string Title { get; set; }
+
+//	string GetFirstAltText();
+//}
