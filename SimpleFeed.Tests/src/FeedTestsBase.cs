@@ -1,9 +1,11 @@
 using System;
-using Xunit;
+using System.IO;
+using System.Threading.Tasks;
+
 using DotNetXtensions;
 using DotNetXtensions.Net;
-using System.Threading.Tasks;
-using System.IO;
+
+using Xunit;
 
 namespace SimpleFeedNS.Tests
 {
@@ -18,13 +20,13 @@ namespace SimpleFeedNS.Tests
 			bool saveToFileIfPossible = true,
 			Action<SFFeedSettings> alterSettings = null)
 		{
-			if (_testFeedPath.NotNulle()) {
+			if(_testFeedPath.NotNulle()) {
 				_feedContent = await File.ReadAllTextAsync(_testFeedPath);
 			}
-			else if (_testFeedUrl.NotNulle()) {
+			else if(_testFeedUrl.NotNulle()) {
 				_feedContent = await XHttp.GetStringAsync(_testFeedUrl);
 
-				if (saveToFileIfPossible && _feedContent.NotNulle() && _testFeedPath.NotNulle()) {
+				if(saveToFileIfPossible && _feedContent.NotNulle() && _testFeedPath.NotNulle()) {
 					await File.WriteAllTextAsync(_testFeedPath, _feedContent);
 				}
 			}

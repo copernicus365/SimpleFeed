@@ -1,4 +1,4 @@
-﻿using DotNetXtensions; //using DotNetXtensionsPrivate;
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
@@ -41,20 +41,20 @@ namespace SimpleFeedNS
 
 		public bool PrepValues()
 		{
-			if (Value.IsTrimmable())
+			if(Value.IsTrimmable())
 				Value = Value.Trim();
-			if (Scheme.IsTrimmable())
+			if(Scheme.IsTrimmable())
 				Scheme = Scheme.Trim();
-			if (Label.IsTrimmable())
+			if(Label.IsTrimmable())
 				Label = Label.Trim();
 			return Value.NotNulle();
 		}
 
 		public string ToStringNoScheme()
 		{
-			if (Label == null)
+			if(Label == null)
 				return Value;
-			if (Value == null)
+			if(Value == null)
 				return Label;
 			return $"{Value} ('{Label}')";
 			//if (Label == null) {

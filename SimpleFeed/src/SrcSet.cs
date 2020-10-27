@@ -1,7 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+
 using DotNetXtensions;
 
 namespace SimpleFeedNS
@@ -26,11 +26,11 @@ namespace SimpleFeedNS
 		{
 			SrcSetImageUrlsDict = null;
 
-			if (SrcSets.NotNulle()) {
+			if(SrcSets.NotNulle()) {
 
 				SrcSets.Sort(v => v.Size);
 
-				foreach (var img in SrcSets) {
+				foreach(var img in SrcSets) {
 					SrcSetImageUrlsDict = SrcSets.ToDictionaryIgnoreDuplicateKeys(
 						v => v.Url, v => v.Size);
 				}
@@ -44,18 +44,18 @@ namespace SimpleFeedNS
 		/// usually will have to alter it.
 		/// </summary>
 		static Regex _rxSrcSets =
-			new Regex(@"(.*?)( )(\d+)(w|x)(,)", 
-				// https://regex101.com/r/BUrSzJ/1
+			new Regex(@"(.*?)( )(\d+)(w|x)(,)",
+			// https://regex101.com/r/BUrSzJ/1
 			RegexOptions.Compiled);
 
 		public static List<SrcSetImg> ParseSrcSets(string srcSetStr, out SrcSizeType sizeType)
 		{
 			sizeType = SrcSizeType.None;
 
-			if (srcSetStr.IsNulle())
+			if(srcSetStr.IsNulle())
 				return null;
 
-			if (srcSetStr.Last() != ',')
+			if(srcSetStr.Last() != ',')
 				srcSetStr += ','; // makes regex much easier / better, and allows consistent 
 
 			var matches = _rxSrcSets
@@ -66,24 +66,24 @@ namespace SimpleFeedNS
 
 			List<SrcSetImg> srcs = new List<SrcSetImg>();
 
-			if (matches.Length > 0) {
+			if(matches.Length > 0) {
 
-				for (int i = 0; i < matches.Length; i++) {
+				for(int i = 0; i < matches.Length; i++) {
 					var m = matches[i];
 
 					var grps = m.Groups;
-					if ((grps?.Count ?? 0).InRange(5, 6)) { // final comma can be missing
+					if((grps?.Count ?? 0).InRange(5, 6)) { // final comma can be missing
 						string url = grps[1].Value.NullIfEmptyTrimmed();
 						int size = grps[3].Value.ToInt(-1);
 						string sizeTypStr = grps[4].Value;
 
-						if (url == null || size < 1 || sizeTypStr == null || sizeTypStr.Length != 1)
+						if(url == null || size < 1 || sizeTypStr == null || sizeTypStr.Length != 1)
 							continue;
 
 						char sType = sizeTypStr[0];
-						if (i == 0) {
+						if(i == 0) {
 							sizeType = SrcSetImg.CharForSrcSetType(sType);
-							if (sizeType == SrcSizeType.None)
+							if(sizeType == SrcSizeType.None)
 								return null;
 						}
 
@@ -93,7 +93,7 @@ namespace SimpleFeedNS
 							Size = size
 						};
 
-						if (!sImg.SetNumberVal(size, sizeType, sizeTypStr[0]))
+						if(!sImg.SetNumberVal(size, sizeType, sizeTypStr[0]))
 							continue;
 
 						srcs.Add(sImg);
@@ -101,7 +101,7 @@ namespace SimpleFeedNS
 				}
 			}
 
-			if (srcs.IsNulle())
+			if(srcs.IsNulle())
 				return null;
 
 			return srcs;

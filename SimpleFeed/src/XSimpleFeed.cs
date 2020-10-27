@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+
 using DotNetXtensions;
 
 namespace SimpleFeedNS
@@ -30,24 +30,24 @@ namespace SimpleFeedNS
 			bool? updatedOrPublishedMustBeSet = null,
 			bool? mustHaveAuthor = null)
 		{
-			if (entry == null)
+			if(entry == null)
 				return false;
 
-			if (entry.Id.IsNulle() ||
+			if(entry.Id.IsNulle() ||
 				entry.Title.IsNulle())
 				return false;
 
-			if (updatedOrPublishedMustBeSet ?? Default_CompleteItemMustHaveUpdateOrPublishedDateSet) {
+			if(updatedOrPublishedMustBeSet ?? Default_CompleteItemMustHaveUpdateOrPublishedDateSet) {
 				if(entry.Published == DateTimeOffset.MinValue && entry.Updated == DateTimeOffset.MinValue)
 					return false;
 			}
 
-			if ((mustHaveAuthor ?? Default_CompleteItemMustHaveAuthor) && entry.Author.IsNulle())
+			if((mustHaveAuthor ?? Default_CompleteItemMustHaveAuthor) && entry.Author.IsNulle())
 				return false;
 
 			return true;
 		}
-		
+
 		[DebuggerStepThrough]
 		public static string UrlN(this SFLink link)
 		{
@@ -68,7 +68,7 @@ namespace SimpleFeedNS
 
 		public static string Name(this SrcSizeType val)
 		{
-			switch (val) {
+			switch(val) {
 				case SrcSizeType.Width:
 					return "width";
 				case SrcSizeType.PixelDensity:

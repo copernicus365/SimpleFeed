@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+
 using DotNetXtensions;
 
 namespace SimpleFeedNS
@@ -93,14 +94,14 @@ namespace SimpleFeedNS
 		private StringBuilder _messages;
 		private StringBuilder messages {
 			get {
-				if (_messages == null) _messages = new StringBuilder(1024);
+				if(_messages == null) _messages = new StringBuilder(1024);
 				return _messages;
 			}
 		}
 
 		public string Messages {
 			get {
-				if (_messages == null || _messages.Length == 0) return null;
+				if(_messages == null || _messages.Length == 0) return null;
 				return _messages.ToString();
 			}
 		}
@@ -138,7 +139,7 @@ namespace SimpleFeedNS
 		{
 			IEnumerable<SFCategory> cats = new SFCategory[0];
 
-			if (includeFeedCategories && Categories.NotNulle())
+			if(includeFeedCategories && Categories.NotNulle())
 				cats = cats.Concat(Categories.E());
 
 			cats = includeChildItemCategories && Items.NotNulle()
@@ -147,8 +148,8 @@ namespace SimpleFeedNS
 
 			Dictionary<string, SFCategory> catsD = new Dictionary<string, SFCategory>();
 
-			foreach (var cat in cats) {
-				if (cat != null && cat.Value.NotNulle())
+			foreach(var cat in cats) {
+				if(cat != null && cat.Value.NotNulle())
 					catsD[cat.Value] = cat;
 			}
 
@@ -161,17 +162,17 @@ namespace SimpleFeedNS
 		{
 			yield return this;
 
-			if (Items.NotNulle()) {
-				foreach (var item in Items)
-					if (item != null)
+			if(Items.NotNulle()) {
+				foreach(var item in Items)
+					if(item != null)
 						yield return item;
 			}
 		}
 
 		public IEnumerable<SFFeedEntry> ItemsAndFeed(Func<SFFeedEntry, bool> predicate)
 		{
-			foreach (var item in ItemsAndFeed())
-				if (predicate(item))
+			foreach(var item in ItemsAndFeed())
+				if(predicate(item))
 					yield return item;
 		}
 
@@ -186,10 +187,10 @@ namespace SimpleFeedNS
 		public IList<SFFeedEntry> Items {
 			get { return m_Items; }
 			set {
-				if (value == null)
+				if(value == null)
 					m_Items = _emptyItems;
 				else {
-					if (value is List<SFFeedEntry>)
+					if(value is List<SFFeedEntry>)
 						m_Items = value;
 					else
 						m_Items = value.ToList();
@@ -220,7 +221,7 @@ namespace SimpleFeedNS
 
 		public IList<SFFeedEntry> Parse(byte[] data)
 		{
-			if (data == null || data.Length < 12) {
+			if(data == null || data.Length < 12) {
 				Error = true;
 				messages.AppendFormat("Input feed byte array was null or too small ({0}) to be valid.", data == null ? "NULL" : data.Length.ToString());
 				return null;
@@ -240,7 +241,7 @@ namespace SimpleFeedNS
 
 				return Parse(feedStr);
 			}
-			catch (Exception ex) {
+			catch(Exception ex) {
 				Error = true;
 				messages.AppendLine("Exception was caught: \r\n" + ex.ToString());
 				return null;
@@ -249,7 +250,7 @@ namespace SimpleFeedNS
 
 		public static bool DataStartsWIthBOM(byte[] data)
 		{
-			if (data == null || data.Length < 3)
+			if(data == null || data.Length < 3)
 				return false;
 
 			// See also: Encoding.UTF8.GetPreamble()
@@ -266,11 +267,11 @@ namespace SimpleFeedNS
 
 		public static bool FixBOMIfNeeded(ref string str)
 		{
-			if (str == null || str.Length < 3)
+			if(str == null || str.Length < 3)
 				return false;
 
 			bool hasBom = str[0] == BOMChar;
-			if (hasBom)
+			if(hasBom)
 				str = str.Substring(1);
 
 			return hasBom;
@@ -279,7 +280,7 @@ namespace SimpleFeedNS
 		public IList<SFFeedEntry> Parse(string feed)
 		{
 			Error = false;
-			if (feed.IsNulle()) {
+			if(feed.IsNulle()) {
 				Error = true;
 				return null;
 			}
@@ -289,7 +290,7 @@ namespace SimpleFeedNS
 
 				XElement doc = XElement.Parse(feed); // XLinqToXml.GetNamespaceIgnorantXElement(feed);  FREEZEs, takes like many minutes, when bad XML input. Does not immediately throw, need to diagnose why, but until then, use the slower other method
 
-				if (this.settings.KeepXmlDocument)
+				if(this.settings.KeepXmlDocument)
 					Document = doc;
 
 				HasAtom = doc.Name.Namespace == ns_Atom || doc.GetPrefixOfNamespace(ns_Atom).NotNulle();
@@ -299,7 +300,7 @@ namespace SimpleFeedNS
 				HasITunes = doc.GetPrefixOfNamespace(ns_iTunes).NotNulle();
 
 				doc.ClearDefaultNamespace();
-				if (!doc.Name.NamespaceName.IsNulle()) {
+				if(!doc.Name.NamespaceName.IsNulle()) {
 					Error = true;
 					messages.AppendLine("Namespace did not clear.");
 					return null;
@@ -310,11 +311,11 @@ namespace SimpleFeedNS
 
 				int limit = Settings.NumberOfEntriesToParseLimit ?? -1;
 
-				switch (doc.Name.ToString()) {
+				switch(doc.Name.ToString()) {
 					case "rss": {
 						IsRss = true;
 						XElement channel = doc.Element("channel");
-						if (channel != null) {
+						if(channel != null) {
 							SourceFeedType = SFFeedType.RSS;
 							RssItemToFeedEntry(channel, this, true);
 
@@ -354,16 +355,16 @@ namespace SimpleFeedNS
 					}
 				}
 
-				if (Items.NotNulle()) {
-					if (Settings.AlterEntryOnComplete != null) {
+				if(Items.NotNulle()) {
+					if(Settings.AlterEntryOnComplete != null) {
 						var alter = Settings.AlterEntryOnComplete;
 						Items = Items.Select(itm => alter(itm)).Where(itm => itm != null).ToList();
 					}
-					if (Settings.GenerateIdForEntriesWithNoId != null) {
+					if(Settings.GenerateIdForEntriesWithNoId != null) {
 						var generateId = Settings.GenerateIdForEntriesWithNoId;
 						string idBase = IdBase;
-						foreach (var itm in Items)
-							if (itm.Id.IsNulle())
+						foreach(var itm in Items)
+							if(itm.Id.IsNulle())
 								itm.Id = generateId(itm, idBase);
 					}
 				}
@@ -372,7 +373,7 @@ namespace SimpleFeedNS
 
 				return Items;
 			}
-			catch (Exception ex) {
+			catch(Exception ex) {
 				Error = true;
 				messages.AppendLine("Exception was caught: \r\n" + ex.ToString());
 				return null;
@@ -390,7 +391,7 @@ namespace SimpleFeedNS
 			SFFeedEntry e = null,
 			bool isRssChannel = false)
 		{
-			if (e == null) // for when parent feed IS the entry
+			if(e == null) // for when parent feed IS the entry
 				e = new SFFeedEntry(Settings);
 
 			// LINK
@@ -412,13 +413,13 @@ namespace SimpleFeedNS
 			var cntStg = settings.ContentSettings;
 
 			// TITLE
-			if (e.Title.IsNulle()) { // itunes overrides
+			if(e.Title.IsNulle()) { // itunes overrides
 				string title = x.Element("title").ValueN().NullIfEmptyTrimmed();
 				e.Title = ConvertHtmlContent(title, cntStg.TitleTag); //, true, settings.HtmlDecodeTextValues); // settings.ConvertHtmlContentInTitleTag
 			}
 
 			// AUTHOR
-			if (e.Author.IsNulle()) // itunes overrides
+			if(e.Author.IsNulle()) // itunes overrides
 				e.AuthorFull = GetAuthorFromXmlRssEntry(x);
 
 			//! CONTENT / DESCRIPTION
@@ -430,7 +431,7 @@ namespace SimpleFeedNS
 			bool contentFromPurlContentEncoded = content_enc != null;
 			//bool contentFromDescriptionTag = false; // <-- not using this variable right now, but we might later...
 
-			if (content_enc == null && description != null) {
+			if(content_enc == null && description != null) {
 
 				// See: https://stackoverflow.com/questions/7220670/difference-between-description-and-contentencoded-tags-in-rss2/54905457#54905457 (https://stackoverflow.com/a/54905457/264031)
 
@@ -439,14 +440,14 @@ namespace SimpleFeedNS
 				description = null;
 			}
 
-			if (description != null && !summaryIsFromItunes) {
+			if(description != null && !summaryIsFromItunes) {
 				// itunes summary DEFINITELY must win for summary (!!), 
 				// given the outlandish uncertainty of RSS on description tag
 				e.Summary = ConvertHtmlContent(description, cntStg.SummaryTag); // settings.ConvertHtmlContentInSummaryTag
 			}
 
-			if (content_enc.NotNulle()) {
-				if (contentFromPurlContentEncoded) // then we KNOW content field will be html content
+			if(content_enc.NotNulle()) {
+				if(contentFromPurlContentEncoded) // then we KNOW content field will be html content
 					e.ContentFull.Type = "text/html";
 
 				e.ContentFull.Value = ConvertHtmlContent(content_enc, cntStg.ContentTag); // settings.ConvertHtmlContentInContentTag
@@ -456,7 +457,7 @@ namespace SimpleFeedNS
 			// (so should NOT have been htmlTagCleared yet, no fear)
 			SetImageUrlsFromContentImgTag(e, content_enc ?? description);
 
-			if (settings.KeepXmlDocument)
+			if(settings.KeepXmlDocument)
 				e.XmlEntry = x;
 
 			ConvertUrlsToLinks(e);
@@ -467,7 +468,7 @@ namespace SimpleFeedNS
 		public SFFeedEntry AtomEntryToFeedEntry(XElement x, SFFeedEntry e = null)
 		{
 			// Unlike RSS, no 'DateTime? defaultDateTime' is needed, because we will always have the 'updated' element 
-			if (e == null)
+			if(e == null)
 				e = new SFFeedEntry(Settings);
 
 			e.Id = (string)x.Element("id");
@@ -480,7 +481,7 @@ namespace SimpleFeedNS
 
 			e.AddMeta(x);
 
-			if (e.Author.IsNulle()) // let itunes override
+			if(e.Author.IsNulle()) // let itunes override
 				e.AuthorFull = GetAuthorFromXmlAtomEntry(x);
 
 			(string titleVal, string titleMType) = AtomTextAndTypeFromXElem(x, "title");
@@ -489,13 +490,13 @@ namespace SimpleFeedNS
 
 			var cntStg = settings.ContentSettings;
 
-			if (titleVal.NotNulle()) // let the ATOM 'title' overrule the itunes one
+			if(titleVal.NotNulle()) // let the ATOM 'title' overrule the itunes one
 				e.TitleFull = AtomTextTypeToText(titleVal, titleMType, cntStg.TitleTag); // settings.ConvertHtmlContentInTitleTag);
 
-			if (summaryVal.NotNulle()) // let the ATOM 'summary' overrule the itunes one
+			if(summaryVal.NotNulle()) // let the ATOM 'summary' overrule the itunes one
 				e.SummaryFull = AtomTextTypeToText(summaryVal, summaryMType, cntStg.SummaryTag); // , settings.ConvertHtmlContentInSummaryTag);
 
-			if (contentVal.NotNulle())
+			if(contentVal.NotNulle())
 				e.ContentFull = AtomTextTypeToText(contentVal, contentMType, cntStg.ContentTag); // , settings.ConvertHtmlContentInContentTag);
 
 			SetImageUrlsFromContentImgTag(e, contentVal ?? summaryVal);
@@ -503,7 +504,7 @@ namespace SimpleFeedNS
 			// LINKS
 			e.SetLinksFromXmlAtomEntry(x);
 
-			if (settings.KeepXmlDocument)
+			if(settings.KeepXmlDocument)
 				e.XmlEntry = x;
 
 			ConvertUrlsToLinks(e);
@@ -514,19 +515,19 @@ namespace SimpleFeedNS
 
 		void __SET_ENTRY_DATES(SFFeedEntry e, string publishedDateStr, string updatedDateStr)
 		{
-			if (publishedDateStr.IsNulle() && updatedDateStr.IsNulle()) {
+			if(publishedDateStr.IsNulle() && updatedDateStr.IsNulle()) {
 				e.Updated = e.Published = DateTimeOffset.MinValue;
 				return;
 			}
 
 			TimeZoneInfo tzi = settings.AlterUTCDatesToThisTimezone;
 
-			if (publishedDateStr == null)
+			if(publishedDateStr == null)
 				publishedDateStr = updatedDateStr;
-			else if (updatedDateStr == null)
+			else if(updatedDateStr == null)
 				updatedDateStr = publishedDateStr;
 
-			if (publishedDateStr == null) // then both are null by now, return
+			if(publishedDateStr == null) // then both are null by now, return
 				return;
 
 			bool areTheSame = publishedDateStr == updatedDateStr;
@@ -540,7 +541,7 @@ namespace SimpleFeedNS
 
 			e.Updated = result;
 
-			if (areTheSame) {
+			if(areTheSame) {
 				e.Published = e.Updated;
 			}
 			else {
@@ -559,21 +560,21 @@ namespace SimpleFeedNS
 
 		public void ConvertUrlsToLinks(SFFeedEntry e)
 		{
-			if (e == null) return;
+			if(e == null) return;
 
 			bool convertCats = settings.ConvertCategoryUrlsToLinks;
 			bool convertAllUrls = settings.ConvertContentUrlsToLinks;
-			if (!convertCats && !convertAllUrls)
+			if(!convertCats && !convertAllUrls)
 				return;
 
-			if (convertAllUrls) // IF ConvertContentUrlsToLinks, then always do ConvertCategoryUrlsToLinks as well
+			if(convertAllUrls) // IF ConvertContentUrlsToLinks, then always do ConvertCategoryUrlsToLinks as well
 				convertCats = true;
 
-			if (convertCats) {
+			if(convertCats) {
 
 				string fields = e.Keywords; // NOTE! this property concats all categories ...
 
-				if (convertAllUrls) {
+				if(convertAllUrls) {
 					fields =
 						(new string[] { fields, e.Title, e.SubTitle, e.Series, e.Summary, e.Content })
 						.Where(v => v.NotNulle())
@@ -582,7 +583,7 @@ namespace SimpleFeedNS
 
 				string[] links = _exTxtFuncs.GetLinks(fields);
 
-				if (links.NotNulle()) {
+				if(links.NotNulle()) {
 
 					var srcsetsDict = e.SrcSet?.SrcSetImageUrlsDict;
 					bool hasSrcSets = srcsetsDict.NotNulle();
@@ -592,24 +593,24 @@ namespace SimpleFeedNS
 						? e.Links.ToDictionaryIgnoreDuplicateKeys(kv => kv.Url, kv => false)
 						: null;
 
-					for (int i = 0; i < links.Length; i++) {
+					for(int i = 0; i < links.Length; i++) {
 
 						string url = links[i];
 
-						if (hasSrcSets) {
-							if (srcsetsDict.ContainsKey(url))
+						if(hasSrcSets) {
+							if(srcsetsDict.ContainsKey(url))
 								continue;
 						}
 
-						if (tempLinksDict != null) {
-							if (tempLinksDict.ContainsKey(url))
+						if(tempLinksDict != null) {
+							if(tempLinksDict.ContainsKey(url))
 								continue;
 						}
-						else if (e.Links.Any(lk => lk.Url == url))
+						else if(e.Links.Any(lk => lk.Url == url))
 							continue;
 
 						var lnk = new SFLink(url) { DiscoveredLink = true };
-						if (lnk != null && lnk.IsValid)
+						if(lnk != null && lnk.IsValid)
 							e.AddLink(lnk);
 					}
 				}
@@ -619,7 +620,7 @@ namespace SimpleFeedNS
 		public void SetImageUrlsFromContentImgTag(SFFeedEntry e, string content)
 		{
 			var contentSettings = settings.ContentSettings;
-			if (e == null || content.IsNulle() || contentSettings == null || !contentSettings.GetFirstImageTagFromHtml)
+			if(e == null || content.IsNulle() || contentSettings == null || !contentSettings.GetFirstImageTagFromHtml)
 				return;
 
 			var srcset = _exTxtFuncs.GetFirstImageTagFromHtmlContent(
@@ -629,14 +630,14 @@ namespace SimpleFeedNS
 
 			var src = srcset?.Src;
 
-			if (srcset != null && src != null) {
+			if(srcset != null && src != null) {
 
-				if (!e.Images().Any(img => img.Url.EqualsIgnoreCase(src.Url))) {
+				if(!e.Images().Any(img => img.Url.EqualsIgnoreCase(src.Url))) {
 					//SFLink.GetMimeTypeFromTypeOrExtension(null,
 					e.AddLink(new SFLink(src.Url, mimeType: BasicMimeType.image));
 				}
 
-				if (srcset.SrcSets.NotNulle()) {
+				if(srcset.SrcSets.NotNulle()) {
 					e.SrcSet = srcset;
 				}
 			}
@@ -651,17 +652,17 @@ namespace SimpleFeedNS
 		public string GetAuthorFromItunesOrDC(XElement item, bool getFeedAuthorIfNull = true)
 		{
 			string name;
-			if (HasITunes) {
+			if(HasITunes) {
 				name = (string)item.Element(xname_iTunes_Author);
-				if (!name.IsNulle())
+				if(!name.IsNulle())
 					return name;
 			}
-			if (HasDublinCore) {
+			if(HasDublinCore) {
 				name = (string)item.Element(xname_DC_Creator);
-				if (!name.IsNulle())
+				if(!name.IsNulle())
 					return name;
 			}
-			if (getFeedAuthorIfNull && !Author.IsNulle())
+			if(getFeedAuthorIfNull && !Author.IsNulle())
 				return Author;
 			return null;
 		}
@@ -674,10 +675,10 @@ namespace SimpleFeedNS
 
 			string authorValue = (string)item.Element("author");
 
-			if (!authorValue.IsNulle()) {
-				if (authorValue[authorValue.Length - 1] == ')') {
+			if(!authorValue.IsNulle()) {
+				if(authorValue[authorValue.Length - 1] == ')') {
 					string[] split = authorValue.Split(m_AuthorRssSplitter, StringSplitOptions.RemoveEmptyEntries);
-					if (authorFull.Name == null &&
+					if(authorFull.Name == null &&
 						split == null ||
 						split.Length != 2 ||
 						split[0].IsNulle() ||
@@ -688,18 +689,18 @@ namespace SimpleFeedNS
 						authorFull.Name = authorValue;
 					}
 					else {
-						if (split[0].IndexOf('@') > 0) // keep to highly performant rudimentary email check
+						if(split[0].IndexOf('@') > 0) // keep to highly performant rudimentary email check
 							authorFull.Email = split[0].Trim();
-						if (AuthorFull.Name == null)
+						if(AuthorFull.Name == null)
 							authorFull.Name = split[1].Substring(0, split[1].Length - 1);
 					}
 				}
 			}
 
-			if (authorFull.Name != null)
+			if(authorFull.Name != null)
 				return authorFull;
 
-			if (authorFull.Name == null && authorFull.Email == null) {
+			if(authorFull.Name == null && authorFull.Email == null) {
 				// only try set from document author if no values thus far
 				authorFull = this.AuthorFull.Copy();
 			}
@@ -708,7 +709,7 @@ namespace SimpleFeedNS
 			// problem is RSS totally can have author value as just the email, by the spec actually
 			// So we have to duplicate Email to Name if is a Email value but no Name value:
 
-			if (authorFull.Name == null && authorFull.Email != null)
+			if(authorFull.Name == null && authorFull.Email != null)
 				authorFull.Name = authorFull.Email;
 
 			return authorFull;
@@ -724,18 +725,18 @@ namespace SimpleFeedNS
 			string publishedDateStr = null;
 			string updatedDateStr = (string)item.Element(xname_Atom_Updated);
 
-			if (isRssChannel) {
-				if (updatedDateStr.IsNulle())
+			if(isRssChannel) {
+				if(updatedDateStr.IsNulle())
 					updatedDateStr = (string)item.Element("lastBuildDate");
 			}
 
-			if (HasAtom)
+			if(HasAtom)
 				publishedDateStr = (string)item.Element(xname_Atom_Published);
 
-			if (HasDublinCore && publishedDateStr == null)
+			if(HasDublinCore && publishedDateStr == null)
 				publishedDateStr = (string)item.Element(xname_DC_Date);
 
-			if (publishedDateStr == null)
+			if(publishedDateStr == null)
 				publishedDateStr = (string)item.Element("pubDate");
 
 			__SET_ENTRY_DATES(e, publishedDateStr, updatedDateStr);
@@ -747,7 +748,7 @@ namespace SimpleFeedNS
 			// Settings.GenerateIdForEntriesWithNoId
 			string id = (string)rss.Element("guid");
 
-			if (id.IsNulle())
+			if(id.IsNulle())
 				return null;
 
 			return GetRssId(id, IdBase);
@@ -755,24 +756,24 @@ namespace SimpleFeedNS
 
 		public static string GetRssId(string id, string idBase)
 		{
-			if (id.IsNulle())
+			if(id.IsNulle())
 				return null;
 
-			if (idBase.IsNulle())
+			if(idBase.IsNulle())
 				return id;
 
 			bool needsTag = true;
-			if (id.Length > 5) {
-				if (id[0] == 'h' && (id.StartsWith("http") && id[4] == ':' || (id[4] == 's' && id[5] == ':')))
+			if(id.Length > 5) {
+				if(id[0] == 'h' && (id.StartsWith("http") && id[4] == ':' || (id[4] == 's' && id[5] == ':')))
 					needsTag = false;
-				else if (id[0] == 't' && id.StartsWith("tag:"))
+				else if(id[0] == 't' && id.StartsWith("tag:"))
 					needsTag = false;
-				else if (id[0] == 'u' && id.StartsWith("urn:"))
+				else if(id[0] == 'u' && id.StartsWith("urn:"))
 					needsTag = false;
 				else
 					needsTag = true;
 			}
-			if (!needsTag)
+			if(!needsTag)
 				return id;
 
 			id = idBase + id; // Uri.EscapeUriString(id);
@@ -789,7 +790,7 @@ namespace SimpleFeedNS
 			bool? htmlDecode = null)
 		{
 			input = input.NullIfEmptyTrimmed();
-			if (input.IsNulle())
+			if(input.IsNulle())
 				return null;
 
 			return settings.ContentSettings.ConvertHtmlContent(input, conversionType, htmlDecode);
@@ -797,7 +798,7 @@ namespace SimpleFeedNS
 
 		public SFFeedEntry SetItunes(XElement entry, SFFeedEntry e)
 		{
-			if (HasITunes) {
+			if(HasITunes) {
 
 				e.AddCategoriesCommaSeparatedString(
 					entry.Element(xname_iTunes_Keywords).ValueN());
@@ -815,11 +816,11 @@ namespace SimpleFeedNS
 				//int? duration = entry.Element(xname_iTunes_Duration).ToIntN();
 
 				XElement itunesImg = entry.Element(xname_iTunes_Image);
-				if (itunesImg != null) {
+				if(itunesImg != null) {
 					string imageUrl = itunesImg.AttributeN("href").ValueN().NullIfEmptyTrimmed();
-					if (imageUrl.NotNulle()) {
+					if(imageUrl.NotNulle()) {
 						var imgLink = new SFLink(imageUrl, mimeType: BasicMimeType.image) { Rel = SFRel.enclosure };
-						if (imgLink.IsValid)
+						if(imgLink.IsValid)
 							e.AddLink(imgLink);
 					}
 				}
@@ -832,9 +833,9 @@ namespace SimpleFeedNS
 		static (string value, string type) AtomTextAndTypeFromXElem(XElement elem, string elemName)
 		{
 			XElement e = elem.Element(elemName);
-			if (e != null) {
+			if(e != null) {
 				string val = e.Value;
-				if (val.NotNulle()) {
+				if(val.NotNulle()) {
 					string typ = e.Attribute("type").ValueN().NullIfEmptyTrimmed();
 					return (val, typ);
 				}
@@ -842,10 +843,10 @@ namespace SimpleFeedNS
 			return (null, null);
 		}
 
-		SFText AtomTextTypeToText(string val, string mtype, SFContentConversionType convType) 
-			// bool clearHtmlTags = false)
+		SFText AtomTextTypeToText(string val, string mtype, SFContentConversionType convType)
+		// bool clearHtmlTags = false)
 		{
-			if (val.NotNulle()) {
+			if(val.NotNulle()) {
 				val = ConvertHtmlContent(val, convType); //, true, settings.HtmlDecodeTextValues);
 
 				return new SFText() { Value = val, Type = mtype };
@@ -857,7 +858,7 @@ namespace SimpleFeedNS
 		{
 			// #1) Check if has ATOM author
 			var xAuthor = entry.Element("author");
-			if (xAuthor != null) {
+			if(xAuthor != null) {
 				SFAuthorFull authorFull = new SFAuthorFull() {
 					Name = (string)xAuthor.Element("name"),
 					Uri = (string)xAuthor.Element("uri"),
@@ -867,7 +868,7 @@ namespace SimpleFeedNS
 			}
 
 			string name = GetAuthorFromItunesOrDC(entry);
-			if (!name.IsNulle())
+			if(!name.IsNulle())
 				return new SFAuthorFull() { Name = name };
 
 			return this.AuthorFull.Copy();

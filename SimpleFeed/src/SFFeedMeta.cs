@@ -1,4 +1,4 @@
-﻿
+
 namespace SimpleFeedNS
 {
 	public class SFFeedMeta
@@ -18,6 +18,6 @@ namespace SimpleFeedNS
 		public override string ToString()
 		{
 			return $"({Source}:{Type}) {Value} [{Url}]";
-        }
+		}
 	}
 }

@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
-using DotNetXtensions; //using DotNetXtensionsPrivate;
+
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
@@ -12,21 +11,21 @@ namespace SimpleFeedNS
 
 		public SFHub(SFLink hubLink, SFLink selfLink = null)
 		{
-			if (hubLink.UrlN().IsNulle())
+			if(hubLink.UrlN().IsNulle())
 				throw new ArgumentNullException();
 
 			HubLink = hubLink;
-			if (selfLink.UrlN().NotNulle())
+			if(selfLink.UrlN().NotNulle())
 				SelfLink = selfLink;
 		}
 
 		public static SFHub GetHubFromLinksOrNull(IEnumerable<SFLink> links)
 		{
-			if (links == null)
+			if(links == null)
 				return null;
 
 			var hubLink = links.FirstN(l => l.Rel == SFRel.hub && l.Url.NotNulle());
-			if (hubLink == null)
+			if(hubLink == null)
 				return null;
 
 			var selfLink = links.FirstN(l => l.Rel == SFRel.self && l.Url.NotNulle());

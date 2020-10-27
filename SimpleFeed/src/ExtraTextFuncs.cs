@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+
 using DotNetXtensions;
 
 namespace SimpleFeedNS
@@ -16,19 +14,19 @@ namespace SimpleFeedNS
 
 		public string[] GetLinks(string s)
 		{
-			if (s != null && s.Length > 7) {
+			if(s != null && s.Length > 7) {
 				int firstHttpIdx = s.IndexOf("http");
-				if (firstHttpIdx >= 0) {
+				if(firstHttpIdx >= 0) {
 
 					var matchColl = Rx_HttpLink.Matches(s, firstHttpIdx);
-					if (matchColl.Count > 0) {
+					if(matchColl.Count > 0) {
 
 						string[] urls = matchColl.Cast<Match>()
 							.Where(m => m.Success && m.Value.InRange(8, 256))
 							.Select(m => m.Value)
 							.ToArray();
 
-						if (urls.NotNulle())
+						if(urls.NotNulle())
 							return urls;
 					}
 				}
@@ -48,21 +46,21 @@ namespace SimpleFeedNS
 			SFContentConversionSettings contentSettings,
 			int maxStartIndexOfImgTag = -1)
 		{
-			if (html.IsNulle() || maxStartIndexOfImgTag < 0 || !contentSettings.GetFirstImageTagFromHtml)
+			if(html.IsNulle() || maxStartIndexOfImgTag < 0 || !contentSettings.GetFirstImageTagFromHtml)
 				return null;
 
 			int maxSearchLen = html.Length;
-			if (maxStartIndexOfImgTag >= 0)
+			if(maxStartIndexOfImgTag >= 0)
 				maxSearchLen = (maxStartIndexOfImgTag + 15).Min(html.Length); // 15, just a rough min after start of img tag, still need an href + the url itself...
 
 			int imgIdx = html.IndexOf("<img ", 0, maxSearchLen);
-			if (imgIdx < 0)
+			if(imgIdx < 0)
 				return null;
 
 			Dictionary<string, string> imgAttributes = contentSettings
 				.GetFirstImageTagAttributesFromHtml(html, imgIdx);
 
-			if (imgAttributes.IsNulle() || !imgAttributes.ContainsKey("src"))
+			if(imgAttributes.IsNulle() || !imgAttributes.ContainsKey("src"))
 				return null;
 
 			SrcSet srcSet = _AttributeKeyValuesToSrcSet(imgAttributes);
@@ -71,13 +69,13 @@ namespace SimpleFeedNS
 
 		static SrcSet _AttributeKeyValuesToSrcSet(Dictionary<string, string> kvs)
 		{
-			if (kvs.IsNulle())
+			if(kvs.IsNulle())
 				return null;
 
 			string src = kvs.V("src");
 			string srcSet = kvs.V("srcset");
 
-			if (src.IsNulle())
+			if(src.IsNulle())
 				return null;
 
 			var srcImg = new SrcSetImg() {
@@ -107,7 +105,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public static Dictionary<string, string> GetHtmlTagAttributes(string tag)
 		{
-			if (tag.IsNulle())
+			if(tag.IsNulle())
 				return null;
 
 			var matches = _rxHtmlAttributeKVs
@@ -118,17 +116,17 @@ namespace SimpleFeedNS
 
 			Dictionary<string, string> kvs = null;
 
-			if (matches.Length > 0) {
+			if(matches.Length > 0) {
 
-				for (int i = 0; i < matches.Length; i++) {
+				for(int i = 0; i < matches.Length; i++) {
 					var m = matches[i];
 
 					var grps = m.Groups;
-					if ((grps?.Count ?? 0) == 3) {
+					if((grps?.Count ?? 0) == 3) {
 						string attr = grps[1].Value;
 						string val = grps[2].Value;
-						if (attr.NotNulle()) {
-							if (kvs == null)
+						if(attr.NotNulle()) {
+							if(kvs == null)
 								kvs = new Dictionary<string, string>();
 							kvs[attr] = val;
 						}
@@ -150,21 +148,21 @@ namespace SimpleFeedNS
 
 		public static bool IsWebLink(string s, bool checkForWww = true)
 		{
-			if (s != null && s.Length > 9) { //http://bit.ly/ = 14 chars, www.msn.ly
-				if (checkForWww &&
+			if(s != null && s.Length > 9) { //http://bit.ly/ = 14 chars, www.msn.ly
+				if(checkForWww &&
 					s[0] == 'w' &&
 					s[1] == 'w' &&
 					s[2] == 'w' &&
 					s[3] == '.') {
 					return true;
 				}
-				else if (
+				else if(
 					s[0] == 'h' &&
 					s[1] == 't' &&
 					s[2] == 't' &&
 					s[3] == 'p') {
 
-					if (
+					if(
 						(s[4] == ':' && s[5] == '/' && s[6] == '/') ||
 						(s[4] == 's' && s[5] == ':' && s[6] == '/' && s[7] == '/')) {
 						return true;

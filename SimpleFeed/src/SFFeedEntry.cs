@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
-using DotNetXtensions; //using DotNetXtensionsPrivate;
+
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
@@ -69,7 +70,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public SFAuthorFull AuthorFull {
 			get {
-				if (m_AuthorFull == null)
+				if(m_AuthorFull == null)
 					m_AuthorFull = new SFAuthorFull();
 				return m_AuthorFull;
 			}
@@ -91,7 +92,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public SFText ContentFull {
 			get {
-				if (_Content == null)
+				if(_Content == null)
 					_Content = new SFText();
 				return _Content;
 			}
@@ -111,7 +112,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public SFText SummaryFull {
 			get {
-				if (_Summary == null)
+				if(_Summary == null)
 					_Summary = new SFText();
 				return _Summary;
 			}
@@ -146,10 +147,10 @@ namespace SimpleFeedNS
 
 		public void AddCategoriesCommaSeparatedString(string value)
 		{
-			if (value.IsNulle())
+			if(value.IsNulle())
 				return;
 
-			foreach (string v in value.Split(_splitChar, StringSplitOptions.RemoveEmptyEntries)) {
+			foreach(string v in value.Split(_splitChar, StringSplitOptions.RemoveEmptyEntries)) {
 				AddCategory(new SFCategory() { Value = v });
 			}
 		}
@@ -159,7 +160,7 @@ namespace SimpleFeedNS
 
 		public bool AddCategory(SFCategory cat) //string value, string scheme = null, string term = null)
 		{
-			if (cat != null && cat.PrepValues()) {
+			if(cat != null && cat.PrepValues()) {
 				Categories.Add(cat);
 				return true;
 			}
@@ -168,20 +169,20 @@ namespace SimpleFeedNS
 
 		public void AddCategories(XElement item)
 		{
-			if (item != null) {
+			if(item != null) {
 				// gets any 'category' elements or any 'atom:category' elements
-				foreach (var xcat in item.Elements().Where(e => e.Name == "category" || e.Name == SimpleFeed.xname_Atom_Category)) { // .Elements("category")) {
-					if (xcat != null) {
+				foreach(var xcat in item.Elements().Where(e => e.Name == "category" || e.Name == SimpleFeed.xname_Atom_Category)) { // .Elements("category")) {
+					if(xcat != null) {
 						string val = xcat.ValueN().NullIfEmptyTrimmed(); // MUST trim this one here for next step
 						SFCategory cat = null;
 
 						// note that 'term' is a REQUIRED attribute for ATOM
-						if (xcat.HasAttributes) {
+						if(xcat.HasAttributes) {
 
-							if (val.IsNulle())
+							if(val.IsNulle())
 								val = xcat.Attributes().FirstOrDefault(a => a.Name == "term").ValueN().TrimIfNeeded();
 
-							if (val.IsNulle())
+							if(val.IsNulle())
 								return;
 
 							cat = new SFCategory() {
@@ -192,7 +193,7 @@ namespace SimpleFeedNS
 						else
 							cat = new SFCategory();
 
-						if (val.IsNulle())
+						if(val.IsNulle())
 							return;
 
 						cat.Value = val;
@@ -205,7 +206,7 @@ namespace SimpleFeedNS
 		public void AddMeta(XElement item)
 		{
 			var f = ParentSettings?.ParentFeed;
-			if (item == null || f == null)
+			if(item == null || f == null)
 				return;
 
 			// rawvoice
@@ -214,15 +215,15 @@ namespace SimpleFeedNS
 			specifies additional meta information that may complement the enclosure and/or may be used 
 			during the playback of the enclosure’s media. It has four attributes:
 			type, link, position and duration and may contain a value. */
-			if (f.HasRawVoice) {
-				foreach (var metaX in item.Elements(SimpleFeed.xname_rawvoice_metamark)) {
+			if(f.HasRawVoice) {
+				foreach(var metaX in item.Elements(SimpleFeed.xname_rawvoice_metamark)) {
 					var meta = new SFFeedMeta() {
 						Source = "rawvoice.meta",
 						Type = metaX.Attribute("type")?.Value?.Trim(), //.ValueN().TrimN();
 						Url = metaX.Attribute("link")?.Value?.Trim(), //.ValueN().TrimN();
 						Value = metaX?.Value?.Trim()
 					};
-					if (meta.Value.NotNulle() || meta.Url.NotNulle()) {
+					if(meta.Value.NotNulle() || meta.Url.NotNulle()) {
 						Metas.Add(meta);
 
 						//BasicMimeType typ = isLinkRVMeta.V(meta.Type, BasicMimeType.none);
@@ -230,9 +231,9 @@ namespace SimpleFeedNS
 							? meta.Url
 							: (ExtraTextFuncs.IsWebLink(meta.Value) ? meta.Value : null);
 
-						if (url != null) {
+						if(url != null) {
 							var lnk = new SFLink(url, meta.Type);
-							if (lnk != null && lnk.IsValid)
+							if(lnk != null && lnk.IsValid)
 								AddLink(lnk);
 						}
 					}
@@ -247,7 +248,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public SFText TitleFull {
 			get {
-				if (_Title == null)
+				if(_Title == null)
 					_Title = new SFText();
 				return _Title;
 			}
@@ -299,17 +300,17 @@ namespace SimpleFeedNS
 			//	? GetWebLinks().FirstOrDefault()
 			//	: null;
 
-			if (_Links.IsNulle())
+			if(_Links.IsNulle())
 				return null;
 			else {
 				SFLink wLnk = null;
 				int cnt = _Links.Count;
-				for (int i = 0; i < cnt; i++) { // (SFLink lnk in _Links) {
+				for(int i = 0; i < cnt; i++) { // (SFLink lnk in _Links) {
 					SFLink lnk = _Links[i];
-					if (lnk != null && lnk.Rel.IsNotEnclosureOrSelf() && lnk.MimeType.IsWebPageOrNone()) {
+					if(lnk != null && lnk.Rel.IsNotEnclosureOrSelf() && lnk.MimeType.IsWebPageOrNone()) {
 
 
-						if (wLnk == null)
+						if(wLnk == null)
 							wLnk = lnk;
 
 
@@ -317,10 +318,10 @@ namespace SimpleFeedNS
 
 
 							// #1 --- REL IS THE SAME ---
-							if (lnk.Rel == wLnk.Rel) {
+							if(lnk.Rel == wLnk.Rel) {
 
 								// If this link's mime is explicitly text_html and the other was not, it wins
-								if (lnk.MimeType != wLnk.MimeType && lnk.MimeType == BasicMimeType.text_html) {
+								if(lnk.MimeType != wLnk.MimeType && lnk.MimeType == BasicMimeType.text_html) {
 									wLnk = lnk;
 								}
 								else
@@ -333,22 +334,22 @@ namespace SimpleFeedNS
 							else {
 
 								// a) IF last wLnk is alternate, and this one is not, last one wins, continue
-								if (wLnk.Rel == SFRel.alternate)
+								if(wLnk.Rel == SFRel.alternate)
 									continue;
 
 								// b) If this lnk IS alternate, then last wasn't (see above), so this one wins
-								else if (lnk.Rel == SFRel.alternate)
+								else if(lnk.Rel == SFRel.alternate)
 									wLnk = lnk;
 
 								// c) Neither rels are alternate, so look now compare mimes
-								else if (lnk.MimeType != wLnk.MimeType && lnk.MimeType == BasicMimeType.text_html) {
+								else if(lnk.MimeType != wLnk.MimeType && lnk.MimeType == BasicMimeType.text_html) {
 									wLnk = lnk; // last could not be because above winnowed they aren't the same
 								}
 								else
 									continue;
 							}
 						}
-						if (wLnk.Rel == SFRel.alternate && wLnk.MimeType == BasicMimeType.text_html)
+						if(wLnk.Rel == SFRel.alternate && wLnk.MimeType == BasicMimeType.text_html)
 							return wLnk;
 					}
 				}
@@ -362,11 +363,11 @@ namespace SimpleFeedNS
 		/// </summary>
 		public IEnumerable<SFLink> GetWebLinks()
 		{
-			if (_Links.IsNulle())
+			if(_Links.IsNulle())
 				yield break;
 
-			foreach (SFLink l in _Links) {
-				if (l != null && l.Rel.IsNotEnclosureOrSelf() && l.MimeType.IsWebPageOrNone())
+			foreach(SFLink l in _Links) {
+				if(l != null && l.Rel.IsNotEnclosureOrSelf() && l.MimeType.IsWebPageOrNone())
 					yield return l;
 			}
 		}
@@ -379,20 +380,20 @@ namespace SimpleFeedNS
 		/// </summary>
 		public SFLink GetFirstEnclosure(Func<BasicMimeType, bool> linkType = null, bool returnFirstEnclosureIfNoLinkTypeMatches = false)
 		{
-			if (_Links.IsNulle())
+			if(_Links.IsNulle())
 				return null;
 
 			SFLink encRel = null;
 
-			if (linkType == null)
+			if(linkType == null)
 				linkType = l => l.IsTextOrNone() == false;
 
-			foreach (SFLink l in _Links) {
-				if (l != null) {
-					if (linkType(l.MimeType))
+			foreach(SFLink l in _Links) {
+				if(l != null) {
+					if(linkType(l.MimeType))
 						return l;
 
-					if (l.Rel == SFRel.enclosure)
+					if(l.Rel == SFRel.enclosure)
 						encRel = l;
 				}
 			}
@@ -408,7 +409,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public List<SFLink> Links {
 			get {
-				if (_Links == null)
+				if(_Links == null)
 					_Links = new List<SFLink>();
 				return _Links;
 			}
@@ -419,14 +420,14 @@ namespace SimpleFeedNS
 
 		public void AddLink(SFLink link)
 		{
-			if (link.UrlN().NotNulle()) {
-				if (ParentSettings != null && ParentSettings.AlterFeedLinks != null)
+			if(link.UrlN().NotNulle()) {
+				if(ParentSettings != null && ParentSettings.AlterFeedLinks != null)
 					link = ParentSettings.AlterFeedLinks.AlterLink(link);
 
-				if (link.UrlN().NotNulle()) {
-					if (Links.NotNulle()) {
+				if(link.UrlN().NotNulle()) {
+					if(Links.NotNulle()) {
 						var lLink = Links.FirstN(lnk => lnk.Url.EqualsIgnoreCase(link.Url));
-						if (lLink != null)
+						if(lLink != null)
 							link = _mergeLinks(link, lLink);
 					}
 					Links.Add(link);
@@ -438,35 +439,35 @@ namespace SimpleFeedNS
 		{
 			var p = primary;
 			var s = secondary;
-			if (p == null)
+			if(p == null)
 				return s;
-			if (s == null)
+			if(s == null)
 				return p;
 
-			if (p.MimeType != s.MimeType) {
+			if(p.MimeType != s.MimeType) {
 				BasicMimeType mtye = p.MimeType.GetMostQualifiedMimeType(s.MimeType);
 				return p.MimeType == mtye ? p : s;
 			}
 
-			if (p.Rel != s.Rel)
+			if(p.Rel != s.Rel)
 				return p.Rel == SFRel.none ? s : p;
 
-			if (p.DiscoveredLink != s.DiscoveredLink)
+			if(p.DiscoveredLink != s.DiscoveredLink)
 				return p.DiscoveredLink ? s : p;
 			return p;
 		}
 
 		public bool WinnowLinks(params string[] urlsToWinnow)
 		{
-			if (_Links.CountN() > 0 && urlsToWinnow.NotNulle()) {
+			if(_Links.CountN() > 0 && urlsToWinnow.NotNulle()) {
 
 				urlsToWinnow = urlsToWinnow.Where(l => l.NotNulle()).ToArray();
 				int arrCnt = urlsToWinnow.Length;
 
-				if (arrCnt > 0) {
+				if(arrCnt > 0) {
 					int origLinksCnt = _Links.Count;
 
-					if (arrCnt == 1) {
+					if(arrCnt == 1) {
 						string url1 = urlsToWinnow[0];
 						_Links = _Links.Where(l => l.UrlN() != url1).ToList();
 					}
@@ -488,7 +489,7 @@ namespace SimpleFeedNS
 		/// </summary>
 		public void SetLinksFromXmlAtomEntry(XElement xEntry)
 		{
-			foreach (var xLink in xEntry.Elements("link")) {
+			foreach(var xLink in xEntry.Elements("link")) {
 				SFLink link = SFLink.AtomXmlLinkToLink(xLink);
 				AddLink(link);
 			}
@@ -499,9 +500,9 @@ namespace SimpleFeedNS
 			//.Where(e => e.Attribute("src") != null)
 			//var contentSrcElem = xEntry.Element("content", "src");
 
-			if (contentSrcElem != null) {
+			if(contentSrcElem != null) {
 				var cSrcLnk = SFLink.AtomXmlLinkToLink(contentSrcElem);
-				if (cSrcLnk != null) {
+				if(cSrcLnk != null) {
 					cSrcLnk.Rel = SFRel.src;
 					AddLink(cSrcLnk);
 				}
@@ -514,18 +515,18 @@ namespace SimpleFeedNS
 		/// <param name="xEntry">RSS item.</param>
 		public void SetLinksFromXmlRssItem(XElement xEntry)
 		{
-			if (xEntry != null) {
+			if(xEntry != null) {
 				XElement[] elems = xEntry.Elements().ToArray();
 
-				foreach (var xLink in elems.Where(e => e.Name == "link" || e.Name == "enclosure")) {
+				foreach(var xLink in elems.Where(e => e.Name == "link" || e.Name == "enclosure")) {
 					SFLink link = SFLink.RssXmlLinkOrEnclosureToLink(xLink);
 					AddLink(link);
 				}
-				foreach (var xLink in elems.Where(e => e.Name == SimpleFeed.xname_Atom_Link)) {
+				foreach(var xLink in elems.Where(e => e.Name == SimpleFeed.xname_Atom_Link)) {
 					SFLink link = SFLink.AtomXmlLinkToLink(xLink);
 					AddLink(link);
 				}
-				foreach (var xLink in elems.Where(e => e.Name == SimpleFeed.xname_yahoomrss_content)) {
+				foreach(var xLink in elems.Where(e => e.Name == SimpleFeed.xname_yahoomrss_content)) {
 					SFLink link = SFLink.YahooMRSSXmlMediaElementToLink(xLink);
 					AddLink(link);
 				}

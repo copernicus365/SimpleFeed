@@ -1,7 +1,6 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using DotNetXtensions; //using DotNetXtensionsPrivate;
+
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
@@ -16,7 +15,7 @@ namespace SimpleFeedNS
 			.AddN("self", SFRel.self)
 			.AddN("alternate home", SFRel.self)
 			.AddN("home", SFRel.self)
-			
+
 			.AddN("hub", SFRel.hub)
 			.AddN("via", SFRel.via)
 			.AddN("src", SFRel.src);

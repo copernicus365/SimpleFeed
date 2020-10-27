@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using DotNetXtensions; //using DotNetXtensionsPrivate;
+
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
@@ -23,9 +18,9 @@ namespace SimpleFeedNS
 		/// </summary>
 		public virtual SFLink AlterLink(SFLink link)
 		{
-			if (link == null || link.Url.IsNulle())
+			if(link == null || link.Url.IsNulle())
 				return null;
-			if (SetYoutubeVimeoLinkMimeTypes) {
+			if(SetYoutubeVimeoLinkMimeTypes) {
 				bool vimYtAltered = AlterLink_VimeoYoutube(link);
 			}
 			return link;
@@ -43,13 +38,13 @@ namespace SimpleFeedNS
 			// but we certainly could not do this with the full url value (e.g. someone could have 'vimeo'
 			// in a url or blog title)
 
-			if (link != null) {
+			if(link != null) {
 				string linkHost = link.Uri.Host;
-                if (linkHost.CountN() > 5) { // && link.LinkType.IsAudio() == false) {
-					if (linkHost.Contains("vimeo")) {
+				if(linkHost.CountN() > 5) { // && link.LinkType.IsAudio() == false) {
+					if(linkHost.Contains("vimeo")) {
 						link.MimeType = BasicMimeType.video_vimeo;
 					}
-					else if (linkHost.Contains("youtu")) {
+					else if(linkHost.Contains("youtu")) {
 						link.MimeType = BasicMimeType.video_youtube;
 					}
 					else

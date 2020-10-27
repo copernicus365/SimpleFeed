@@ -1,8 +1,9 @@
 using System;
-using System.Collections.Generic;
-using SimpleFeedNS;
+
 using DotNetXtensions;
-using DotNetXtensions.Test;
+
+using SimpleFeedNS;
+
 using Xunit;
 
 namespace SimpleFeed.Tests

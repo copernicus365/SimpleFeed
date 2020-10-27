@@ -1,6 +1,6 @@
-﻿using DotNetXtensions;
-using System;
 using System.Collections.Generic;
+
+using DotNetXtensions;
 
 namespace SimpleFeedNS
 {
@@ -33,15 +33,15 @@ namespace SimpleFeedNS
 			SFContentConversionType conversionType,
 			bool? htmlDecode = null)
 		{
-			if (input == null)
+			if(input == null)
 				return null;
 
 			input = input.NullIfEmptyTrimmed();
-			if (input == null)
+			if(input == null)
 				return null;
 
 			bool _htmlDecode = htmlDecode ?? HtmlDecodeTextValues;
-			if (_htmlDecode)
+			if(_htmlDecode)
 				input = System.Net.WebUtility.HtmlDecode(input);
 
 			return input.NullIfEmptyTrimmed() ?? "";

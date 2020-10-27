@@ -1,9 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using DotNetXtensions;
-
 namespace SimpleFeedNS
 {
 	public class SrcSetImg
@@ -20,30 +14,29 @@ namespace SimpleFeedNS
 
 		public static SrcSizeType CharForSrcSetType(char c)
 		{
-			switch (c) {
+			switch(c) {
 				case 'w': return SrcSizeType.Width;
 				case 'x': return SrcSizeType.PixelDensity;
 				default: return SrcSizeType.None;
 			}
 		}
 
-		public char SrcSetTypeChar
-		{
+		public char SrcSetTypeChar {
 			get {
-				switch (SizeType) {
+				switch(SizeType) {
 					case SrcSizeType.Width: return 'w';
 					case SrcSizeType.PixelDensity: return 'x';
 					default:
 						return '-';
-			}
 				}
+			}
 		}
 
 		public bool SetNumberVal(int size, SrcSizeType expectedSizeType, char sizeType)
 		{
 			var type = CharForSrcSetType(sizeType);
 
-			if (type != expectedSizeType)
+			if(type != expectedSizeType)
 				return false;
 
 			Size = size;
