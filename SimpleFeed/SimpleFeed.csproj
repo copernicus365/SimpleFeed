@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <VersionPrefix>3.2.0</VersionPrefix>
-    <VersionSuffix>beta.2</VersionSuffix>
+    <VersionPrefix>3.3.0</VersionPrefix>
+    <!--<VersionSuffix>beta.2</VersionSuffix>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Nicholas Petersen</Authors>
     <RepositoryUrl>https://github.com/copernicus365/SimpleFeed</RepositoryUrl>
@@ -25,8 +25,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetXtensions" Version="3.7.0" />
-    <PackageReference Include="DotNetXtensions.MimeTypes" Version="4.0.0-beta.2" />
+    <PackageReference Include="DotNetXtensions" Version="4.0.0" />
+    <PackageReference Include="DotNetXtensions.MimeTypes" Version="4.1.0" />
   </ItemGroup>
 
 </Project>

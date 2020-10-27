@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,10 +106,8 @@ namespace SimpleFeedNS
 		}
 
 		public string IdBase {
-			get {
-				return (m_IdBase != null) ? m_IdBase : LocalIdTag;
-			}
-			set { m_IdBase = value; }
+			get => m_IdBase ?? LocalIdTag;
+			set => m_IdBase = value;
 		}
 		/// <summary>
 		/// The 'rights' (ATOM) or 'copyright' (RSS) value. 
@@ -294,11 +292,11 @@ namespace SimpleFeedNS
 				if (this.settings.KeepXmlDocument)
 					Document = doc;
 
-				HasAtom = doc.Name.Namespace == ns_Atom || (doc.GetPrefixOfNamespace(ns_Atom).IsNulle() ? false : true);
-				HasDublinCore = doc.GetPrefixOfNamespace(ns_DC).IsNulle() ? false : true;
-				HasRawVoice = doc.GetPrefixOfNamespace(ns_rawvoice).IsNulle() ? false : true;
-				HasYahooMRss = doc.GetPrefixOfNamespace(ns_yahoomrss).IsNulle() ? false : true;
-				HasITunes = doc.GetPrefixOfNamespace(ns_iTunes).IsNulle() ? false : true;
+				HasAtom = doc.Name.Namespace == ns_Atom || doc.GetPrefixOfNamespace(ns_Atom).NotNulle();
+				HasDublinCore = doc.GetPrefixOfNamespace(ns_DC).NotNulle();
+				HasRawVoice = doc.GetPrefixOfNamespace(ns_rawvoice).NotNulle();
+				HasYahooMRss = doc.GetPrefixOfNamespace(ns_yahoomrss).NotNulle();
+				HasITunes = doc.GetPrefixOfNamespace(ns_iTunes).NotNulle();
 
 				doc.ClearDefaultNamespace();
 				if (!doc.Name.NamespaceName.IsNulle()) {
@@ -342,7 +340,7 @@ namespace SimpleFeedNS
 					case "feed": {
 						IsAtom = true; //HasAtom = true; // do NOT set this to true, the true namespace MUST be available
 						SourceFeedType = SFFeedType.ATOM;
-						AtomEntryToFeedEntry(doc, this, true);
+						AtomEntryToFeedEntry(doc, this);
 						Items = doc
 							.Elements("entry")
 							.TakeIf(limit > 0, limit)
@@ -402,7 +400,7 @@ namespace SimpleFeedNS
 			SetRssDates(x, e, isRssChannel);
 
 			// ID
-			e.Id = GetRssId(x); // e.GetFirstWebLink()?.Url); //e.GetFirstWebLink()?.Url.QQQ(e.GetFirstEnclosure()?.Url));
+			e.Id = GetRssId(x); // e.GetFirstWebLink()?.Url); //e.GetFirstWebLink()?.Url.firstN-tNul(e.GetFirstEnclosure()?.Url));
 
 			SetItunes(x, e);
 
@@ -466,7 +464,7 @@ namespace SimpleFeedNS
 			return e;
 		}
 
-		public SFFeedEntry AtomEntryToFeedEntry(XElement x, SFFeedEntry e = null, bool isAtomDocument = false)
+		public SFFeedEntry AtomEntryToFeedEntry(XElement x, SFFeedEntry e = null)
 		{
 			// Unlike RSS, no 'DateTime? defaultDateTime' is needed, because we will always have the 'updated' element 
 			if (e == null)
@@ -557,7 +555,7 @@ namespace SimpleFeedNS
 			}
 		}
 
-		ExtraTextFuncs ex = new ExtraTextFuncs();
+		readonly ExtraTextFuncs _exTxtFuncs = new ExtraTextFuncs();
 
 		public void ConvertUrlsToLinks(SFFeedEntry e)
 		{
@@ -582,7 +580,7 @@ namespace SimpleFeedNS
 						.JoinToString(" ;!; ");
 				}
 
-				string[] links = ex.GetLinks(fields);
+				string[] links = _exTxtFuncs.GetLinks(fields);
 
 				if (links.NotNulle()) {
 
@@ -624,7 +622,7 @@ namespace SimpleFeedNS
 			if (e == null || content.IsNulle() || contentSettings == null || !contentSettings.GetFirstImageTagFromHtml)
 				return;
 
-			var srcset = ex.GetFirstImageTagFromHtmlContent(
+			var srcset = _exTxtFuncs.GetFirstImageTagFromHtmlContent(
 				content,
 				contentSettings,
 				maxStartIndexOfImgTag: 2048);
@@ -652,7 +650,7 @@ namespace SimpleFeedNS
 
 		public string GetAuthorFromItunesOrDC(XElement item, bool getFeedAuthorIfNull = true)
 		{
-			string name = null;
+			string name;
 			if (HasITunes) {
 				name = (string)item.Element(xname_iTunes_Author);
 				if (!name.IsNulle())
@@ -670,9 +668,9 @@ namespace SimpleFeedNS
 
 		public SFAuthorFull GetAuthorFromXmlRssEntry(XElement item)
 		{
-			SFAuthorFull authorFull = new SFAuthorFull();
-
-			authorFull.Name = GetAuthorFromItunesOrDC(item);
+			SFAuthorFull authorFull = new SFAuthorFull {
+				Name = GetAuthorFromItunesOrDC(item)
+			};
 
 			string authorValue = (string)item.Element("author");
 
@@ -804,9 +802,9 @@ namespace SimpleFeedNS
 				e.AddCategoriesCommaSeparatedString(
 					entry.Element(xname_iTunes_Keywords).ValueN());
 
-				e.Author = entry.Element(xname_iTunes_Author).ValueN().TrimIfNeeded();
-				e.SubTitle = entry.Element(xname_iTunes_Subtitle).ValueN().TrimIfNeeded();
-				e.Summary = entry.Element(xname_iTunes_Summary).ValueN().TrimIfNeeded();
+				e.Author = entry.Element(xname_iTunes_Author).ValueN().NullIfEmptyTrimmed();
+				e.SubTitle = entry.Element(xname_iTunes_Subtitle).ValueN().NullIfEmptyTrimmed();
+				e.Summary = entry.Element(xname_iTunes_Summary).ValueN().NullIfEmptyTrimmed();
 
 				//bool htmlDecode = settings.HtmlDecodeTextValues;
 
@@ -818,7 +816,7 @@ namespace SimpleFeedNS
 
 				XElement itunesImg = entry.Element(xname_iTunes_Image);
 				if (itunesImg != null) {
-					string imageUrl = itunesImg.AttributeN("href").ValueN().TrimIfNeeded();
+					string imageUrl = itunesImg.AttributeN("href").ValueN().NullIfEmptyTrimmed();
 					if (imageUrl.NotNulle()) {
 						var imgLink = new SFLink(imageUrl, mimeType: BasicMimeType.image) { Rel = SFRel.enclosure };
 						if (imgLink.IsValid)

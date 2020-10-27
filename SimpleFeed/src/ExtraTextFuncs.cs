@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -144,7 +144,7 @@ namespace SimpleFeedNS
 		/// double-quotes for this string literal. 
 		/// Can't find it here, but maybe: https://stackoverflow.com/questions/317053/regular-expression-for-extracting-tag-attributes
 		/// </summary>
-		static Regex _rxHtmlAttributeKVs =
+		static readonly Regex _rxHtmlAttributeKVs =
 			new Regex(@"(\S+)\s*=\s*[\""']?((?:.(?![\""']?\s+(?:\S+)=|[>\""']))?[^\""']*)[\""']?",
 			RegexOptions.Compiled);
 

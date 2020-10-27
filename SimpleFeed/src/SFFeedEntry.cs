@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -154,12 +154,8 @@ namespace SimpleFeedNS
 			}
 		}
 
-		static char[] _splitChar = { ',' };
+		static readonly char[] _splitChar = { ',' };
 
-		//public bool AddCategory(SFCategory category)
-		//{
-
-		//}
 
 		public bool AddCategory(SFCategory cat) //string value, string scheme = null, string term = null)
 		{
@@ -176,7 +172,7 @@ namespace SimpleFeedNS
 				// gets any 'category' elements or any 'atom:category' elements
 				foreach (var xcat in item.Elements().Where(e => e.Name == "category" || e.Name == SimpleFeed.xname_Atom_Category)) { // .Elements("category")) {
 					if (xcat != null) {
-						string val = xcat.ValueN().TrimIfNeeded(); // MUST trim this one here for next step
+						string val = xcat.ValueN().NullIfEmptyTrimmed(); // MUST trim this one here for next step
 						SFCategory cat = null;
 
 						// note that 'term' is a REQUIRED attribute for ATOM
@@ -243,11 +239,6 @@ namespace SimpleFeedNS
 				}
 			}
 		}
-
-		private static Dictionary<string, BasicMimeType> isLinkRVMeta = new Dictionary<string, BasicMimeType>()
-			.AddN("video", BasicMimeType.video)
-			.AddN("audio", BasicMimeType.audio)
-			.AddN("image", BasicMimeType.image);
 
 		#endregion
 
