@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <VersionPrefix>3.3.0</VersionPrefix>
-    <!--<VersionSuffix>beta.2</VersionSuffix>-->
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <VersionPrefix>3.4.0</VersionPrefix>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Nicholas Petersen</Authors>
     <RepositoryUrl>https://github.com/copernicus365/SimpleFeed</RepositoryUrl>
@@ -13,20 +11,15 @@
     <PackageReleaseNotes />
     <Description>A rich and extremely tolerant .NET RSS and ATOM feed parser.</Description>
     <NoWarn>1701;1702;1705;0159;1591;NU5105;</NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netstandard2.0\SimpleFeed.xml</DocumentationFile>
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netstandard2.0\SimpleFeed.xml</DocumentationFile>
+    <RootNamespace>SimpleFeedNS</RootNamespace>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <!--<VersionSuffix>beta.2</VersionSuffix>-->
+    <!--<ProduceReferenceAssembly>True</ProduceReferenceAssembly>-->
+    <!--<DocumentationFile>bin\docs</DocumentationFile>-->
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetXtensions" Version="4.0.0" />
+    <PackageReference Include="DotNetXtensions" Version="4.1.0" />
     <PackageReference Include="DotNetXtensions.MimeTypes" Version="4.1.0" />
   </ItemGroup>
-
 </Project>
