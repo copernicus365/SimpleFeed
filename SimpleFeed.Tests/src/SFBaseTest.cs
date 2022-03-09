@@ -1,15 +1,31 @@
-using DotNetXtensions.Test;
+using System.IO;
 
-namespace SimpleFeed.Tests
+namespace SFTests;
+
+public class SFBaseTest
 {
-	public class SFBaseTest : XUnitTestBase
+	public static string DataString(string path)
 	{
-		public SFBaseTest(string resourceBasePath = "data") : base(
-			typeof(SFBaseTest),
-			resourceBasePath,
-			cacheResourceGets: true)
-		{
-
-		}
+		string fpath = _getDataPath(path);
+		string content = File.ReadAllText(fpath);
+		True(content != null);
+		return content;
 	}
+
+	public static byte[] DataBytes(string path)
+	{
+		string fpath = _getDataPath(path);
+		var content = File.ReadAllBytes(fpath);
+		True(content != null);
+		return content;
+	}
+
+	static string _getDataPath(string path)
+	{
+		string fpath = Path.Combine(Environment.CurrentDirectory, "data", path); //ProjectPath.deb .BinPath(path), path);
+		return fpath;
+	}
+
+	public static void True(bool isTrue)
+		=> Assert.True(isTrue);
 }

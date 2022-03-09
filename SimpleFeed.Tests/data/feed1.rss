@@ -1,0 +1,40 @@
+<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+<channel>
+<description>feed</description>
+<link>https://dev.lifepointohio.com/dynamic/feed/closer-look.php?campus=lewis-center</link>
+<title>feed</title>
+<item>
+<guid>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/621acbaf45621944980271ae_February27.2022.CloserLook.pdf</guid>
+<title>Feb 26 Closer Look</title>
+<link>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/621acbaf45621944980271ae_February27.2022.CloserLook</link>
+<pubDate>Sat, 26 Feb 2022 19:00:00 EST</pubDate>
+</item>
+<item>
+<guid>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6211bd828c0039cd2d3bb4d3_February20.2022.CloserLook.pdf</guid>
+<title>Feb 19 Closer Look</title>
+<link>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6211bd828c0039cd2d3bb4d3_February202022CloserLook</link>
+<pubDate>Sat, 19 Feb 2022 19:00:00 EST</pubDate>
+</item>
+<item>
+<guid>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6210e74e38e29e00da65ea51_February13.2022.CloserLook.pdf</guid>
+<title>Feb 12 Closer Look</title>
+<link>https://uploads-ssl.webflow.com/</link>
+<pubDate>Sat, 12 Feb 2022 19:00:00 EST</pubDate>
+</item>
+<item>
+<guid>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6210e74e38e29edd6965ea45_February6.2022.CloserLook.pdf</guid>
+<title>Feb 5 Closer Look</title>
+<link>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6210e74e38e29edd6965ea45_February6.2022.CloserLook.pdf</link>
+<pubDate>Sat, 05 Feb 2022 19:00:00 EST</pubDate>
+</item>
+<item>
+<guid>https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6210e74e38e29e59df65ea3c_January30.2022.CloserLook.pdf</guid>
+<title>Jan 29 Closer Look</title>
+<pubDate>Sat, 29 Jan 2022 19:00:00 EST</pubDate>
+<published>2022-02-12T19:00:00Z</published>
+<atom:link rel="alternate" type="application/pdf" href="https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6210e74e38e29e59df65ea3c_January30.2022.CloserLook.pdf"/>
+<summary> </summary>
+<content type="application/pdf" src="https://uploads-ssl.webflow.com/6210e74d38e29e9c8a65d663/6210e74e38e29e59df65ea3c_January30.2022.CloserLook.pdf"/>
+</item>
+</channel>
+</rss>

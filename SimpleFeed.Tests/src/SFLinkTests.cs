@@ -6,7 +6,7 @@ using SimpleFeedNS;
 
 using Xunit;
 
-namespace SimpleFeed.Tests
+namespace SFTests
 {
 	public class SFLinkTests : SFBaseTest
 	{
