@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <VersionPrefix>3.4.0</VersionPrefix>
+    <!--<VersionSuffix>beta.2</VersionSuffix>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Nicholas Petersen</Authors>
     <RepositoryUrl>https://github.com/copernicus365/SimpleFeed</RepositoryUrl>
@@ -13,9 +14,6 @@
     <NoWarn>1701;1702;1705;0159;1591;NU5105;</NoWarn>
     <RootNamespace>SimpleFeedNS</RootNamespace>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <!--<VersionSuffix>beta.2</VersionSuffix>-->
-    <!--<ProduceReferenceAssembly>True</ProduceReferenceAssembly>-->
-    <!--<DocumentationFile>bin\docs</DocumentationFile>-->
   </PropertyGroup>
 
   <ItemGroup>
