@@ -1,4 +1,3 @@
-
 namespace SimpleFeedNS
 {
 	public class SFFeedMeta

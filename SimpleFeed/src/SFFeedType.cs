@@ -1,4 +1,3 @@
-﻿
 namespace SimpleFeedNS
 {
 	public enum SFFeedType

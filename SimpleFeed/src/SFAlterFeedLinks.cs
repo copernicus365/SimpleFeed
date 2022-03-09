@@ -1,4 +1,3 @@
-
 using DotNetXtensions;
 
 namespace SimpleFeedNS
