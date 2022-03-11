@@ -8,7 +8,7 @@ using Xunit;
 
 namespace SFTests
 {
-	public class SFLinkTests : SFBaseTest
+	public class SFLinkTests : BaseTest
 	{
 		const BasicMimeType mtypNONE = BasicMimeType.none;
 

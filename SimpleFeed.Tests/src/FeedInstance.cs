@@ -14,6 +14,8 @@ public class FeedInstance
 	object _feedLock = new();
 	public int TimesParsed;
 
+	static BaseTest _baseTest = new();
+
 	public FeedInstance(
 		string contentPath,
 		Action<SFFeedSettings> alterSettings = null)
@@ -43,7 +45,7 @@ public class FeedInstance
 					Settings = _settings
 				};
 
-				var content = SFBaseTest.DataBytes(_contentPath);
+				var content = _baseTest.DataBytes(_contentPath);
 
 				_feed.Parse(content);
 			}

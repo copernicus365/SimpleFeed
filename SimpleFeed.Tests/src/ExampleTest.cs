@@ -1,6 +1,6 @@
 namespace SFTests;
 
-public class ExampleTest : SFBaseTest
+public class ExampleTest : BaseTest
 {
 
 }

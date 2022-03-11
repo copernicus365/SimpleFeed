@@ -1,6 +1,6 @@
 namespace SFTests;
 
-public class FeedTests1 : SFBaseTest
+public class FeedTests1 : BaseTest
 {
 	static FeedInstance _feed = new("feed1.rss");
 
