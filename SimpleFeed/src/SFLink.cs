@@ -20,6 +20,7 @@ namespace SimpleFeedNS
 		/// <param name="isRssEncl"></param>
 		/// <param name="mimeType">A default mime-type. <paramref name="mimeTypeStr"/> if set will override this value,
 		/// but this will still be set as a default type if the string value doesn't have a matching enum value.</param>
+		/// <param name="detectYtubeVimeo">True to detect youtube or vimeo type video link mime types</param>
 		public SFLink(
 			string url,
 			string mimeTypeStr = null,
@@ -27,7 +28,8 @@ namespace SimpleFeedNS
 			string title = null,
 			int length = 0,
 			bool isRssEncl = false,
-			BasicMimeType mimeType = BasicMimeType.none)
+			BasicMimeType mimeType = BasicMimeType.none,
+			bool detectYtubeVimeo = true)
 		{
 			IsValid = FixOrValidateInputUrl(url, out string _url, out Uri uri, out string ext);
 			if(!IsValid)
@@ -43,7 +45,7 @@ namespace SimpleFeedNS
 			Rel = _Rel;
 			RelOther = _RelOther;
 
-			MimeType = GetMimeTypeFromTypeOrExtension(mimeTypeStr, Ext, Uri, detectYtubeVimeoTypes: true)
+			MimeType = GetMimeTypeFromTypeOrExtension(mimeTypeStr, mimeType, Ext, Uri, detectYtubeVimeoTypes: detectYtubeVimeo)
 				.GetMostQualifiedMimeType(mimeType);
 		}
 
@@ -134,6 +136,7 @@ namespace SimpleFeedNS
 		/// <param name="detectYtubeVimeoTypes">True to detect a mime-type for youtube / vimeo.</param>
 		public static BasicMimeType GetMimeTypeFromTypeOrExtension(
 			string mimeType,
+			BasicMimeType? mimeTypeEnum,
 			string extension,
 			Uri uri = null,
 			bool detectYtubeVimeoTypes = false)
@@ -144,22 +147,25 @@ namespace SimpleFeedNS
 			if(mimeType != null) {
 				mime = BasicMimeTypesX.ParseMimeType(mimeType, allowGenericMatchOnNotFound: true);
 			}
+			else if(mimeTypeEnum != null)
+				mime = mimeTypeEnum.Value;
 
-			if(extension.NotNulle() && mime.IsGenericTypeOrNone()) { //.HasNoSubtypeOrNone()) {
+			if(extension.NotNulle() && mime.IsGenericTypeOrNone()) {
 				BasicMimeType _extMime = BasicMimeType.none.GetMimeTypeFromFileExtension(extension);
 				mime = mime.GetMostQualifiedMimeType(_extMime);
 			}
 
-			if(detectYtubeVimeoTypes && uri != null) {
-				if(mime == BasicMimeType.none || (extension.IsNulle() && mimeType == null)) { // hmmm, i guess let this override if these conditions met 
-					string linkHost = uri.Host;
-					if(linkHost.CountN() > 5) {
-						if(linkHost.Contains("vimeo")) {
-							mime = BasicMimeType.video_vimeo;
-						}
-						else if(linkHost.Contains("youtu")) {
-							mime = BasicMimeType.video_youtube;
-						}
+			if(!detectYtubeVimeoTypes || uri == null)
+				return mime;
+
+			if(mime == BasicMimeType.none || (mime.IsGenericType() && mime.GetGenericMimeType() == BasicMimeType.video)) {
+				string linkHost = uri.Host;
+				if(linkHost.CountN() > 5) {
+					if(linkHost.Contains("vimeo")) {
+						mime = BasicMimeType.video_vimeo;
+					}
+					else if(linkHost.Contains("youtu")) {
+						mime = BasicMimeType.video_youtube;
 					}
 				}
 			}
